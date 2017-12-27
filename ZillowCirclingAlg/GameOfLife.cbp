@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="GameOfLife" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/Explosion Generator" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-std=c++11" />
+					<Add option="-g" />
+					<Add option="-DGLEW_STATIC" />
+					<Add directory="C:/Program Files (x86)/GnuWin32/include" />
+					<Add directory="C:/Program Files (x86)/CodeBlocks/MinGW/include" />
+					<Add directory="libraries/zlib-1.2.8" />
+					<Add directory="../GameOfLife" />
+					<Add directory="gui" />
+					<Add directory="model" />
+					<Add directory="model/builtin_model" />
+					<Add directory="renderer" />
+					<Add directory="utility" />
+					<Add directory="libraries/glm" />
+				</Compiler>
+				<Linker>
+					<Add option="-lglew32" />
+					<Add option="-lglew32s" />
+					<Add option="-lglew32mx" />
+					<Add option="-lmingw32" />
+					<Add option="-lSDLmain" />
+					<Add option="-lSDL" />
+					<Add option="-llibpng" />
+					<Add option="-llibpng12" />
+					<Add option="-lSDL_ttf" />
+					<Add option="-lSDL_image" />
+					<Add option="-lSDL_mixer" />
+					<Add option="-lSDL_net" />
+					<Add option="-lopengl32" />
+					<Add option="-lglu32" />
+					<Add option="-lglut32" />
+					<Add option="-lassimp" />
+					<Add option="-lfreetype" />
+					<Add library="libraries\lib\Assimp\x64\assimp.lib" />
+					<Add library="C:\Program Files (x86)\CodeBlocks\MinGW\lib\glew32.lib" />
+					<Add library="C:\Program Files (x86)\CodeBlocks\MinGW\lib\glew32s.lib" />
+					<Add library="C:\Program Files (x86)\CodeBlocks\MinGW\lib\libmingw32.a" />
+					<Add library="C:\Program Files (x86)\CodeBlocks\MinGW\lib\libopengl32.a" />
+					<Add library="libraries\lib\SDL_image.lib" />
+					<Add library="libraries\lib\libSDL.dll.a" />
+					<Add library="libraries\lib\libSDLmain.a" />
+					<Add library="libraries\lib\libpng.dll.a" />
+					<Add library="libraries\lib\libpng12.dll.a" />
+					<Add directory="C:/Program Files (x86)/GnuWin32/lib" />
+					<Add directory="../GameOfLife" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/Explosion Generator" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-std=c++11" />
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+		</Compiler>
+		<Linker>
+			<Add option="-lmingw32" />
+			<Add option="-lSDLmain" />
+			<Add option="-lSDL" />
+			<Add library="C:\SDL-1.2.14\lib\libSDL.dll.a" />
+			<Add library="C:\SDL-1.2.14\lib\libSDLmain.a" />
+			<Add library="C:\Program Files (x86)\CodeBlocks\MinGW\lib\libmingw32.a" />
+		</Linker>
+		<Unit filename="define.h" />
+		<Unit filename="game_board.cpp" />
+		<Unit filename="game_board.h" />
+		<Unit filename="gol_model.cpp" />
+		<Unit filename="gol_model.h" />
+		<Unit filename="gol_model_manager.cpp" />
+		<Unit filename="gol_model_manager.h" />
+		<Unit filename="gui/button.cpp" />
+		<Unit filename="gui/button.h" />
+		<Unit filename="gui/control.cpp" />
+		<Unit filename="gui/control.h" />
+		<Unit filename="gui/gui_manager.cpp" />
+		<Unit filename="gui/gui_manager.h" />
+		<Unit filename="gui/label.cpp" />
+		<Unit filename="gui/label.h" />
+		<Unit filename="gui/list_box.cpp" />
+		<Unit filename="gui/list_box.h" />
+		<Unit filename="gui/rect.h" />
+		<Unit filename="gui/slider.cpp" />
+		<Unit filename="gui/slider.h" />
+		<Unit filename="gui/text_engine.cpp" />
+		<Unit filename="gui/text_engine.h" />
+		<Unit filename="main.cpp" />
+		<Unit filename="main.h" />
+		<Unit filename="model/EG_ImportedModel.cpp" />
+		<Unit filename="model/EG_ImportedModel.h" />
+		<Unit filename="model/EG_InstancedModel.cpp" />
+		<Unit filename="model/EG_InstancedModel.h" />
+		<Unit filename="model/EG_Mesh.cpp" />
+		<Unit filename="model/EG_Mesh.h" />
+		<Unit filename="model/EG_Model.cpp" />
+		<Unit filename="model/EG_Model.h" />
+		<Unit filename="model/EG_ModelABS.cpp" />
+		<Unit filename="model/EG_ModelABS.h" />
+		<Unit filename="model/EG_VertexData.h" />
+		<Unit filename="model/builtin_model/EG_CubeModel.cpp" />
+		<Unit filename="model/builtin_model/cube_model.h" />
+		<Unit filename="model/builtin_model/quad_model.cpp" />
+		<Unit filename="model/builtin_model/quad_model.h" />
+		<Unit filename="model/builtin_model/xyz_axis_model.cpp" />
+		<Unit filename="model/builtin_model/xyz_axis_model.h" />
+		<Unit filename="model/imported_animated_model.cpp" />
+		<Unit filename="model/imported_animated_model.h" />
+		<Unit filename="model/mesh.cpp" />
+		<Unit filename="model/mesh.h" />
+		<Unit filename="model/meshData.h" />
+		<Unit filename="model/sceneLoader.cpp" />
+		<Unit filename="model/sceneLoader.h" />
+		<Unit filename="model/texture.cpp" />
+		<Unit filename="model/texture.h" />
+		<Unit filename="pipeline.cpp" />
+		<Unit filename="pipeline.h" />
+		<Unit filename="renderer/general_renderer.cpp" />
+		<Unit filename="renderer/general_renderer.h" />
+		<Unit filename="renderer/renderer.cpp" />
+		<Unit filename="renderer/renderer.h" />
+		<Unit filename="renderer/renderer_manager.cpp" />
+		<Unit filename="renderer/renderer_manager.h" />
+		<Unit filename="shader.cpp" />
+		<Unit filename="shader.h" />
+		<Unit filename="utility/utility.cpp" />
+		<Unit filename="utility/utility.h" />
+		<Unit filename="utility/utility_assimp_math.cpp" />
+		<Unit filename="utility/utility_debug.cpp" />
+		<Unit filename="utility/utility_gl.cpp" />
+		<Unit filename="utility/utility_gl_uni_loc.cpp" />
+		<Unit filename="utility/utility_math.cpp" />
+		<Unit filename="utility/utility_sdl.cpp" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<envvars />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
