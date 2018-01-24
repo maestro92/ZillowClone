@@ -1,0 +1,812 @@
+#############################################################################################
+####################################### 2017 Feb 4th ########################################
+#############################################################################################
+
+-	This is my first entry of my dev-log, I thought it will be nice to start this dev-log (cuz John Carmack did for quake3? haha), cuz i think this will allow me 
+to practice explaining some of the design decisions I made for my game, and I think putting my thoughts into words will certianly be helpful in the future in my interviews
+
+
+I am at a point where I am working on the collision detection on both the server and client side. From reading the quake3 source, server has all entities in the game, and he actually
+only sends the objects the client can see or neighboring objects (this is determined his through BSP tree) to the client. So client only knows about a subset of all the entities in the game. After parsing the snapshot from the server, the client then does collision detection on the subset for the client-side prediciton part.
+
+Although I already have the KD-tree collision detection system setup (which is a different algorithm), I don't know how to accomplish the equivalent of getting the only neighboring/visible objects. This is also my first attempt on getting the collision detection to work on both sides, so I just want it to be functional at this point. Hence I am just gonna send every entity down from the server to the client.
+
+so after that decisions, I had to think about how I organize entities on both the server/client side. An array pointers? just an array?
+
+So I did some googling on "best data structures for games" and 
+http://seanmiddleditch.com/data-structures-for-game-developers-the-slot-map/
+http://gamedev.stackexchange.com/questions/33888/what-is-the-most-efficient-container-to-store-dynamic-game-objects-in
+
+
+the basic idea I got out of it is that for the 
+	Fixed Size Simple Array Object Table vs Slot Map(the one single array version, not the array of array version) 
+You should go with the Slot Map if you want to avoid the 
+	"
+	 When an object is freed, its "unique" identifier (its index into the array) is put on the free list and eventually reused. This can cause bugs in many use cases. Say, for instance, that a delayed event is put in a queue to send a message to object #27. That object is subsequently destroyed. However, before that delayed event fires, a new object is created, and it gets given the id #27. When the event fires, it is now delivered to the wrong object!
+	 "
+
+Situation. This results in a solution of using tag + index for referencing objects.
+
+It seems to be that this is only necessary if you have "delayed events situation". I am not sure at this point of my game if I have delayed events. Therefore I am just gonna 
+use the "fixed size simple array object table" solution on the server for now.
+
+As for the client, it is to my understanding that the client does not actually ever create or destory objects on its own. It is only when the server sends down the snapshot that the client will add or remove entities from its main object array. Since I am only just using index as a uniqueId to access objects, I am just going to directly set the object at the index as I parse the snapshot from server
+
+
+
+
+
+
+
+-	had a C++ problem cross include problem, essentially the problem is stack overflow post below illustrated below
+
+http://stackoverflow.com/questions/31513890/c-pointer-to-incomplete-class-type-is-not-allowed
+
+
+
+
+
+
+
+
+there Other things I've learned from the past, I am just gonna put it here on the first entry
+Curiously recurring template pattern for the Weapon Class
+I Needed a static variable for each derived class
+
+
+-	What's the difference between calling detach() and not calling detach()
+
+http://stackoverflow.com/questions/22803600/when-should-i-use-stdthreaddetach
+
+
+-	difference between std::tread and boost threads?
+
+
+
+
+
+
+
+-	difference between namespace-functions vs static methods on a class
+
+essentially, when I was making the utility functions, my first approach is just to have a class full of static functions. Then later on, I switched to namespace
+
+short answer:
+By default, use namespaced functions.
+Classes are to build objects, not to replace namespaces.
+
+long answer:
+http://stackoverflow.com/questions/1434937/namespace-functions-versus-static-methods-on-a-class
+
+
+
+
+-	creating zoom
+
+https://www.opengl.org/archives/resources/faq/technical/viewing.htm
+
+
+
+-	should i specify virtual on the sub-classes methods as well
+
+No you technically do not need to specify virtual. If the base method is virtual then C++ will automatically make the matching override method virtual.
+However you should be marking them virtual. The method is virtual after all and it makes your code much clearer and easier to follow by other developers.
+
+http://stackoverflow.com/questions/3167045/do-i-need-to-specify-virtual-on-the-sub-classes-methods-as-well
+
+
+-	why do we need private-variables
+http://programmers.stackexchange.com/questions/143736/why-do-we-need-private-variables
+
+
+
+
+-	should the network code run its own thread?
+
+Glenn Fiedler said: Get it wokring on a single thread non-blocking first. If there are performance problems with that, move it to another thread
+as an optimization. DOn't feel you need to do it multithreadded initially.
+
+Next, for NAT punch through sure if you do client->client you would have to do that. So don’t :). Do client/server and have a server in a data center and no punching is required. This is the way ™. NAT punching and P2P are stupid and a waste of time.
+
+http://gafferongames.com/networking-for-game-programmers/
+
+
+
+Nath-punch through
+
+https://keithjohnston.wordpress.com/2014/02/17/nat-punch-through-for-multiplayer-games/
+
+
+
+
+
+
+
+
+#############################################################################################
+####################################### 2017 Feb 5th ########################################
+#############################################################################################
+
+-	follow up on yesterday's thought on what entities to include in the snapshot when sending it down from the server the client. It seems like what BSP-PVS based games are doing is that they are testing visibility by doing a frustrum test into the BSP. Then they send the visible ones down to the client. 
+
+Regardless, i am still just gonna send everything down on my first try.
+
+
+-	Also as I mentioned yesterday, I am using a straight up index based array for entities on my first attemp. As a small improvement, I am adding a "preferredIterationStart" variable in the FOArray (the name for my simple index based array) class. I am making the assumption that all the static objects, such as map geometry, are always loaded first, then all the dynamic ones are added afterwards. So when I decide which entities to send down, I only need to start iterating from the start of the dynamic objects. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+#############################################################################################
+####################################### 2017 Feb 10th #######################################
+#############################################################################################
+
+I had a chance to read about Game Programming Gems 2, Chapter 1.1 "Optimization for C++ Games" and I found out that
+there is actually a performance difference between "i++" and "++i". Reread that chapter if you are ever interested, and I also found some links
+
+http://stackoverflow.com/questions/24901/is-there-a-performance-difference-between-i-and-i-in-c
+
+http://stackoverflow.com/questions/4706199/post-increment-and-pre-increment-within-a-for-loop-produce-same-output
+(see Anders Sjoqvist)
+
+essentially the memo is: Use ++i if you don’t have a specific reason to use i++. This is becuz i++ creates a temporary variable to store the original value of i, then performs the incrementation and returns the temporary variable.
+
+
+I am gonna start writing ++i just to get in a habit of doing it
+
+
+
+
+
+
+#############################################################################################
+####################################### 2017 Feb 11th #######################################
+#############################################################################################
+
+I came to realize that my original thought on "fixed size simple array object table" solution has a huge flaw in one scenario in my game. I previous reasoning behind this solution is that, the "tag + index" solution is only needed when I have to deal with past events. In my current structure, that is true if I play on my "client only single player" mode, I forgot that I have to deal with past information when the server creates the new snapshot becuz he has to compare the entity information from the last snapshot to the current one. 
+
+take the example below
+
+
+Last snapshot
+
+    client_entities index       0       1       2       3       4
+
+    client_entities            _______________________________________
+                              | ent0  | ent1  | ent2  | ent3  | ent4  |
+                              |  10   |  11   |  12   | (gun) | 14    |
+                              |_______|_______|_______|_______|_______|
+
+
+    gun destroyed, bullet added
+
+
+new snapshot
+
+    client_entities index       0       1       2       3       4
+
+    client_entities            _______________________________________
+                              | ent0  | ent1  | ent2  | ent3  | ent4  |
+                              |  10   |  11   |  12   |bullet | 14    |
+                              |_______|_______|_______|_______|_______|
+
+
+so if I only identity entities by index, I would run into the problem that the game thinking the gun and the bullet is the same entity, which is clearly incorrect.
+
+
+So I have to actually implement the "tag + index" solution for my game to function properly
+
+
+
+
+
+also I am taking the advice from the article http://seanmiddleditch.com/data-structures-for-game-developers-the-slot-map/
+by having The object_id type restated as a struct or union. 
+
+
+union ObjectId
+{
+  int id;
+  struct 
+  {
+    uint16_t tag;
+    uint16_t index;
+  } u;
+};
+
+
+
+
+
+#############################################################################################
+####################################### 2017 Feb 13th #######################################
+#############################################################################################
+
+I was looking through RakNet Manual, esepcially on the reliability types part
+
+http://www.jenkinssoftware.com/raknet/manual/reliabilitytypes.html
+
+the amount of information is overwhelming the say the least. From reading Gaffers On Games, I know that UDP is the way to go for a time sensitive game, such as my FPS, but even for UDP
+there are mulitple types lsited on the link above
+  
+  Unreliable
+  Unreliable sequenced
+  Reliable
+  Reliable ordered
+
+I think to really understand the difference between these, I will have to learn to write my own network protocol first, then also read RakNet source code to really understand what is going on. So for now 
+I will just have to do everything with IMMEDIATE_PRIORITY + RELIABLE_ORDERED to get single player working first
+
+
+
+
+
+
+
+
+
+
+
+
+#############################################################################################
+####################################### 2017 Feb 16th #######################################
+#############################################################################################
+
+Realized something about RakNet today while implementing the network communication between client and server.
+
+This occured when I was implementing the functions ServerSendingSnapshotToClient() and ClientSendUserCmd(). 
+
+Let's just take the example of ServerSendingSnapshotToClient(). I initally intend to clone this functions almost exactly like quake3's.  
+When it came to constructing the actual packet, quake3 calls the following functions to build the snapshot packet
+
+
+						// init header
+						MSG_InitOOB (&send, send_buf, sizeof(send_buf));
+
+						MSG_WriteLong( &send, chan->outgoingSequence );
+
+						MSG_WriteData( &send, data, length );
+						{
+							MSG_WriteByte (msg, svc_snapshot);
+
+							MSG_WriteByte (msg, [snapshot_information: playerstate, entityState, bluh bluh]);
+
+							MSG_WriteByte( msg, svc_EOF );
+						}
+
+
+for the location in the source code, look inside SV_SendClientSnapshot() from sv_snapshot.c. 
+
+
+brief notations are below:
+
+outgoingSequence:
+	outgoing seqeunce number
+
+svc_snapshot:
+	the type of message, so the client will knows what is this message that it just read.
+
+svc_EOF:
+	marks the end of the snapshot, when the client reads this enum, it will know that it has finished reading all the playerStates and entityStates that the server send down
+
+
+
+You can see that the sequence number goes out first, then the type of message comes second. Since I intended to replicate quake3, I first manually added a sequence number for my server and client class.
+Then for the "type", since RakNet offers the flexiblity for the user to add some custom defined RakNet::MessageIDs, I figured i can just add a "SNAPSHOT" RakNet::MessageIDs, and use that as the "type"
+
+so my first attempt was 
+
+						RakNet::BitStream bs;
+
+						bs.write(sequenceNumber)
+						bs.write((RakNet::MessageID)SNAPSHOT)
+
+
+						...
+						...
+
+well apparently this does not work becuz RakNet, by convention expects a RakNet::MessageID to a first byte. If you don't follow so, peer->Receive() will not successfully return a packet for you.
+So to solve this problem, I had to always keep a RakNet::MessageID at front
+
+
+						RakNet::BitStream bs;
+
+						bs.write((RakNet::MessageID)SNAPSHOT)
+						bs.write(sequenceNumber)
+
+
+						...
+						...
+
+
+my understanding is that he sequence number mechanism is already implemented underneath so the users dont have to worry about it. I tried to look into RakNet source code, and I have no idea what is going on
+I figured this will be another why i should learn to write a protocol myself, which will enhance my understanding in this topic 
+
+
+
+
+
+
+#############################################################################################
+####################################### 2017 Feb 20th #######################################
+#############################################################################################
+
+got burned for not declaring my WorldObject class destructor virtual...
+probably took me 20 mins to find out my derived class destructor was not being called...
+
+
+so always make your base class destructor virtual...
+
+
+
+The 2nd thing I want to mention is that I am starting put lambda function in the code. From googling, the general concept I got from it is that having lambdas makes the code a lot cleaner.
+Using Vinh's work, I can now easiliy employ dependency injection. 
+
+There does not seemed to have any performance benefits though. But still it makes your code neat.
+
+for more details, refer to my "Functor, Lambdas and Callable" article
+
+
+Apparenlty, lambdas are added as a new feature of C++11.
+
+
+
+
+
+#############################################################################################
+####################################### 2017 Feb 26th #######################################
+#############################################################################################
+
+I had to chance to learn about how the C++ compiler automatically generates a class's "default constructor, copy constructors, cpy assignment operator, and destructor" if you don't define one
+
+I was reading the "Effective C++ Third Edition" book and that was the summary for "Item 5" in the book.
+
+And luckily I had a chance to learn about it working on this project.
+
+I was working the part where the game emulate latency on the local machine. The way I accomplish this fake latency is that instead of immediately sending the packet, I put them in queue. Then every frame, I check in the queue and see if the packet has reached their delivery time.
+
+So take the example of the server sending the snapshot, the usual server frame loop will look like something below (quake3 style)
+
+				serverFrame
+				{
+					serverReadPackets();
+
+					...
+
+					serverRunSimulation();
+
+					...
+
+					serverSendClientMessages();
+
+					...
+				}
+
+
+and so in the serverSendClientMessages(){} function is where you will send the new snapshot to the clients. Previously, using RackNet,
+I will just call
+
+
+					m_server.peer->Send(&snapshot_bitstream, IMMEDIATE_PRIORITY, RELIABLE_ORDERED, 0, client.address, false);
+
+
+to send it directly to the client. But to emulate latency, I put it in a this "serverToClient" queue, and process it later, so the my loop will look like this
+
+
+					
+					queue<DelayedPacket> serverToClient;
+					...
+					...
+
+
+					serverFrame
+					{
+						serverReadPackets();
+
+						...
+
+						serverRunSimulation();
+
+						...
+
+						serverSendClientMessages();	// instead of sending client messages, I put them in serverToClient
+
+						...
+
+						processPacketQueue(serverAbsoluteTime, serverToClient, true);
+					}
+
+
+
+
+
+Pretty straight forward right? Well the surprised happened when defining the struct DelayedPacket. Initially I had it like this
+
+					struct DelayedPacket
+					{
+						unsigned int deliveryTime;
+						RakNet::SystemAddress address;
+						RakNet::BitStream bs;
+					}
+
+but somehow, I was getting the following compiler error 
+					
+					Error	21	error C2248: 'RakNet::BitStream::BitStream' : cannot access private member declared in class 'RakNet::BitStream'	d:\martin\programming\c_c++\visual studio projects\faceoff\faceoff\main.h	784	1	FaceOff
+
+
+from looking at the internet, apaprently RakNet does not allow RakNet::BitStream to pass by value. So I figured that has to be happening becuz I haven't defined
+the copy construct, and copy assignment operator, and that the compiler generated their own versions of it that copied by value. I would only have known about it becuz I just happened to read "Item 5" that morning.......
+
+So obviously I put it in the fix to fix that.. 
+
+
+
+					struct DelayedPacket
+					{
+						unsigned int deliveryTime;
+						RakNet::SystemAddress address;
+						RakNet::BitStream bs;
+
+						
+						DelayedPacket()
+						{
+							bs.Reset();
+						}
+						
+						DelayedPacket(const DelayedPacket& dp)
+						{
+							this->deliveryTime = dp.deliveryTime;
+							this->address = dp.address;
+							this->bs.Reset();
+							this->bs.Write(((RakNet::BitStream*)(&dp.bs)));
+						}
+
+						DelayedPacket& operator = (const DelayedPacket& dp)
+						{
+							this->deliveryTime = dp.deliveryTime;
+							this->address = dp.address;
+							this->bs.Reset();
+							this->bs.Write(((RakNet::BitStream*)(&dp.bs)));
+							return *this;
+						}
+						
+
+						DelayedPacket(unsigned int time, RakNet::SystemAddress Address, RakNet::BitStream& Bs)
+						{
+							this->deliveryTime = time;
+							this->address = Address;
+							this->bs.Reset();
+							this->bs.Write(Bs);		
+						}
+					};
+
+
+there u go kids. morale of the story:
+1.	reading good stuff always helps
+2.	know what your compilers are doing...
+
+
+
+
+
+
+
+#############################################################################################
+####################################### 2017 march 7th ######################################
+#############################################################################################
+
+want to mention something about organizing utility files. As you might know, I am currently reading the "Effective C++ Third Edition"
+and on the Item 23 (page 101), there is a paragraph describing how C++ manages its std library files
+
+	"
+			Note that this is exaclty how the standard C++ library is organized. Rather than having a single monolithic <C++StandardLibrary
+			header containing everything in the std namespace, there are dozens of headers (e.g. <vector>, <algorithm>, <memory>, etc.), each decalring some of the functionality in std. CLients who use only vector-related functionality aren't required to #include <memory>;
+			clients who won't use list don't have to #include <list>. This allows clinets to be compilation dependent only on the parts of the system they actually use
+	"
+
+well, if c++ std is doing it this way, then I should definition do the same with my utiliity functions... which is right now a single monolithic utility file 
+
+
+
+
+http://stackoverflow.com/questions/4955159/is-is-a-good-practice-to-put-the-definition-of-c-classes-into-the-header-file
+
+
+http://stackoverflow.com/questions/5735379/what-does-include-actually-do
+
+
+
+
+
+#############################################################################################
+####################################### 2017 march 18th #####################################
+#############################################################################################
+
+encountered an interesting problem on client frame rate while working on client prediction
+
+usually the client frame loop is 
+
+
+				clientReadPacket();
+
+				clientSendCmd();
+
+				interpolateEntities();
+
+				clientPrediction();
+
+
+and in the clentPrediction step, depending how much latency you have, the workload in the clientPrediction function will vary.
+the higher the latency, the more client UserCmd that has to predict. Hence that slows down the entire client loop. I found out about this issue
+when I was testing with 0 latency cs 200ms latency. Under 0 latency, the game was generating a lot more UserCmd becuz the clientLoop runs faster. Hence
+telling me about the need to address the client frame rate issue.
+
+
+And that essentially addresses a more general problem in game development, which is client frame rate. 
+if you insert any type of control of frame rate, then  your game will run at different speed on different machines
+
+After looking into valve's article, especially the part under "Basic Architecture of a Client / Server Game"
+
+https://developer.valvesoftware.com/wiki/Latency_Compensating_Methods_in_Client/Server_In-game_Protocol_Design_and_Optimization
+
+it says
+				1.	Sample clock to find start time
+				2.	...
+				3.	...
+				4.	...
+				5.	...
+				6.	...
+				7.	...			
+				8.	End time minus start time is the simulation time for the next frame
+
+in the top and bottom
+
+
+
+
+
+#############################################################################################
+####################################### 2017 march 26th #####################################
+#############################################################################################
+
+encoutered an "already known revelation" about hash-tables
+
+This happened when I was profiling my code. (I was pleased to find out that visual studio 2017 free edition has the profiler!). Even under the release build, my game was not 
+running fast enough to have two instances running on my machine. I felt that my game should atleast be able to accomplish that since quake3 runs fine with two instances on my machine
+
+After profiling my game, it turns a step in my collision detection was taking a lot time. Specifically, the part where I check for duplicated colisions checks.
+
+in a usual physics collision detection tick, we generally have the algorithm below if you use some kind of broadphase collision detection
+
+
+
+			for entity in world
+			{
+
+				neighbors = kdtree.findNeighbors(entity)
+
+				for neighbor in neighbors
+				{
+					resolveCollision()
+				}
+
+			}
+
+
+
+and in the kdtree.findNeighbors function, you usually will implement some type mechanism to avoid repleated collisions.
+previously, I was using an unordered_set to accomplish this. I would take both ids from the collision pairs, sort them, and store that as a key 
+in the unordered_set. And becuz the game hit the collision code very frequently, the unordered_set, despite having a constant big(O) access time which we learned in school
+was killing my game.
+
+the new approach I used was storing a bit array for each object in the game to check whether I've already tested collision with an object. So my added a int array 
+
+
+			class Entity
+			{
+
+
+			
+			}
+
+
+
+
+
+profiling
+get rid of unordered_map
+
+
+trying to remove virtual functions
+
+	"ignore Physics With"
+
+
+
+
+
+v-table vs if else branching
+
+
+
+consider using switch as well
+
+
+
+
+http://softwareengineering.stackexchange.com/questions/301510/in-general-is-it-worth-using-virtual-functions-to-avoid-branching
+
+
+
+
+
+
+
+
+
+#############################################################################################
+####################################### 2017 April 8th ######################################
+#############################################################################################
+
+
+memset vs looping 
+
+
+
+http://stackoverflow.com/questions/7367677/is-memset-more-efficient-than-for-loop-in-c
+
+
+
+
+my thinking is, if something depends on the "compiler", just do it then...
+
+
+
+
+-	c++ union and endianess
+also realized something
+
+
+
+
+
+
+#############################################################################################
+####################################### 2017 April 9th ######################################
+#############################################################################################
+
+
+
+http://stackoverflow.com/questions/4117002/why-can-i-access-private-variables-in-the-copy-constructor
+
+
+The access modifiers work on class level, and not on object level.
+
+That is, two objects of the same class can access each others private members.
+
+
+
+
+
+
+
+
+
+
+
+#############################################################################################
+####################################### 2017 April 11th #####################################
+#############################################################################################
+
+
+I was reading the "An Introduction to GCC" book, and it was talking about macros, and it said 
+
+	"that it is al godo idea to surround macros by parentheses whenever they are part of an expression"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#############################################################################################
+####################################### 2017 April 15th #####################################
+#############################################################################################
+
+
+
+interpolating angles
+
+
+
+
+
+
+
+#############################################################################################
+####################################### 2017 April 16th #####################################
+#############################################################################################
+
+I am recently working on skeletal animation, and I stumble upon the question of "should I calculate the matrices on the CPU or the GPU"
+
+this is the best answer I found
+
+
+
+http://stackoverflow.com/questions/16620013/should-i-calculate-matrices-on-the-gpu-or-on-the-cpu
+
+
+
+- Death sequence
+another thing I thought about is dealing with the camera positioning during the death animation of your main character. Usually the camera zooms out of the "first person point of view" 
+to a "third person point of view". To implement this, I recalled a GDC talk where they talk about how they implement the same thing in the "last of us"
+essentially they add back up cameras at possible camera positions around your character (joel or ellie). So if your normal in-game camera is behind collisions, you check the other ones, to see if you have
+line of sight
+
+name of the GDC 2014 talk: 
+
+	Unsynced: The Last of Us Melee System
+
+http://www.gdcvault.com/play/1020368/Unsynced-The-Last-of-Us, around at the 30:15 mark
+
+
+
+
+
+#############################################################################################
+####################################### 2017 April 29th #####################################
+#############################################################################################
+
+I have gotten skeletal animation to work in my game recently
+
+I am going to start the network protocol. One major source of learning will be from source code I have downloaded from gaffer on games.
+I think this will also be helpful for my work as well. 
+
+If you consider some of the major engineering components of a game such as AI, graphics, physics and Network and so on. Since you are on a mobile platform, graphics and physics are gonna be limited.
+We won't be doing ground breaking stuff on graphics or physics from a mobile game. But there will be lots of interesting networking problems, for example: reducing bandwith, etc etc. Just imaigne all 
+the network diagnostic tools Milota wrote.
+
+There I am starting the network protocol for my game
+
+
+
+
+#############################################################################################
+####################################### 2017 May 9th #####################################
+#############################################################################################
+
+I was wondering if I should prefer using pointers or references in member data
+
+
+
+http://stackoverflow.com/questions/892133/should-i-prefer-pointers-or-references-in-member-data
+
+
+I was also profiling my code with visual studio, and the results show that one of the most intensive task was from
+ig7icd32.dll. After googling, this is what I found out about it:
+
+	"
+	Ig7icd32.dll is a type of DLL file associated with Intel Graphics 
+	Accelerator Drivers for Windows 8® developed by Intel Corporation 
+	for the Windows Operating System. The latest known version of 
+	Ig7icd32.dll is 9.17.10.2867, which was produced for Windows 7.
+	"
+
+so essentially, it is intel graphics drivers
+

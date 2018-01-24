@@ -1,0 +1,78 @@
+[
+	{
+
+		"r": 			"r_texture",
+		"vs":			"texture.vs",
+		"fs":			"texture.fs",
+		"data":
+		{
+			"u_texture":	"DP_INT"
+		}
+	},
+
+	{
+
+		"r": 			"r_depthTexture",
+		"vs":			"depth_texture.vs",
+		"fs":			"depth_texture.fs",
+		"data":
+		{
+			"u_texture":	"DP_INT"
+		}
+	},
+
+	{
+		"r": 			"r_coloredRect",
+		"vs":			"colored_rect.vs",
+		"fs":			"colored_rect.fs",
+		"data":
+		{
+			"u_color":		"DP_VEC3"
+		}
+	},
+
+	{
+		"r": 			"r_texturedRect",
+		"vs":			"textured_rect.vs",
+		"fs":			"textured_rect.fs",
+		"data":
+		{
+			"u_texture":	"DP_INT"
+		}
+	},
+
+	{
+		"r": 			"r_listBoxItemHighlight",
+		"vs":			"list_box_item_highlight.vs",
+		"fs":			"list_box_item_highlight.fs",
+		"data":
+		{
+			"u_x1":		"DP_FLOAT",
+			"u_x2":		"DP_FLOAT",
+			"u_y1":		"DP_FLOAT",
+			"u_y2":		"DP_FLOAT"
+		}
+	},
+
+	{
+		"r": 			"r_sniperScopeView",
+		"vs":			"sniper_scope_view.vs",
+		"fs":			"sniper_scope_view.fs",
+		"data":
+		{
+			"u_sniperScopeViewTexture":	"DP_INT",
+			"u_sceneTexture":			"DP_INT"
+		}
+	},
+
+	{
+		"r": 			"r_text",
+		"vs":			"text.vs",
+		"fs":			"text.fs",
+		"data":
+		{
+			"u_texture":	"DP_INT",
+			"u_color":		"DP_VEC3"
+		}
+	}
+]
