@@ -2,7 +2,6 @@
 #define MAIN_H_
 
 class WorldObject;
-struct KDTreeNode;
 
 #include <cstdlib>
 #include <iostream>
@@ -20,8 +19,6 @@ struct KDTreeNode;
 
 #include <GL/glew.h>
 
-#include "cube_wireframe_model.h"
-
 #include "utility.h"
 #include "shader.h"
 
@@ -29,7 +26,6 @@ struct KDTreeNode;
 #include "gui_manager.h"
 #include <chrono>
 
-#include "imported_model.h"
 #include "pipeline.h"
 
 #include <ft2build.h>
@@ -37,21 +33,11 @@ struct KDTreeNode;
 #include "renderer_manager.h"
 #include "renderer.h"
 #include "renderer_constants.h"
-#include "player.h"
 
-#include "light\light_manager.h"
-#include "first_person_camera.h"
 
 #include "quad_model.h"
 #include "xyz_axis_model.h"
 #include "world_object.h"
-#include "particle.h"
-#include "skybox.h"
-#include "billboard_list.h"
-
-#include "world_object\particle_effect\particle_effect.h"
-#include "world_object\particle_effect\fire_work_effect.h"
-#include "world_object\particle_effect\smoke_effect.h"
 
 #include "model_manager.h"
 
@@ -63,31 +49,7 @@ struct KDTreeNode;
 #include <thread>
 #include <mutex>
 
-#include "RakPeerInterface.h"
-#include <RakNetTypes.h>
-#include "MessageIdentifiers.h"
 #include <vector>
-#include "BitStream.h"
-#include "RakNetTypes.h"	// Message ID
-// #include "network/network_manager.h"
-
-#include "client_server\network_manager.h"
-#include "client_server\server.h"
-#include "client_server\client.h"
-
-#include "client_server\game_messages.h"
-
-#include "collision_detection/contact_data.h"
-#include "collision_detection/collision_detection.h"
-
-#include "collision_detection/kd_tree.h"
-
-#include "terrain/terrain.h"
-#include "terrain/multitexture_terrain.h"
-
-#include "client_server\network_utility.h"
-
-
 
 using namespace std;
 /*
@@ -600,60 +562,16 @@ struct FOArray
 };
 
 
-struct DelayedPacket
-{
-	unsigned int deliveryTime;
-	RakNet::SystemAddress address;
-	RakNet::BitStream bs;
-//	unsigned char* data;
 
-	// http://www.geeksforgeeks.org/copy-constructor-vs-assignment-operator-in-c/
-	// need to define copy constructer and assignment operator becuz RakNet does not allow BitStream copy by value
-	
-	DelayedPacket()
-	{
-		bs.Reset();
-	}
-	
-	DelayedPacket(const DelayedPacket& dp)
-	{
-		this->deliveryTime = dp.deliveryTime;
-		this->address = dp.address;
-		this->bs.Reset();
-		this->bs.Write(((RakNet::BitStream*)(&dp.bs)));
-	}
-
-	DelayedPacket& operator = (const DelayedPacket& dp)
-	{
-		this->deliveryTime = dp.deliveryTime;
-		this->address = dp.address;
-		this->bs.Reset();
-		this->bs.Write(((RakNet::BitStream*)(&dp.bs)));
-		return *this;
-	}
-	
-
-	DelayedPacket(unsigned int time, RakNet::SystemAddress Address, RakNet::BitStream& Bs)
-	{
-		this->deliveryTime = time;
-		this->address = Address;
-		this->bs.Reset();
-		this->bs.Write(Bs);		
-	}
-};
 
 const int TIME_PROFILER_BUFFER = 10;
 const int FPS_PROFILER_BUFFER = 20;
 
-typedef std::queue<DelayedPacket> PacketQueue;
 
-class FaceOff
+
+class ZillowClone
 {
-	// private:
 	public:
-//		static RendererManager		m_rendererMgr;
-//		static ModelManager			m_modelMgr;
-		NetworkManager				m_nm;
 		Renderer*					p_renderer;
 		
 		/// GUI
@@ -661,12 +579,7 @@ class FaceOff
 		Uint32 m_nextGameTick = 0;
 		MouseState m_mouseState;
 
-		Pipeline m_lightPovPipeline;
 		Pipeline m_pipeline;
-
-		glm::vec3 sunPosition;
-
-		DelayedPacket myDP;
 
 		float m_fps;
 		float m_iterRefreshRate;
@@ -678,46 +591,18 @@ class FaceOff
 
 		bool isRunning;
 
-		// float FIXED_UPDATE_TIME;
-
-		FirstPersonCamera m_spectatorCamera;
-
-		// lights
-		LightManager m_lightManager;
 
 		// models
 		Model*          p_model;
-		Weapon* mainWeaponPtr;
-		// objects
-		Terrain o_terrain;
-		MultiTextureTerrain o_multiTextureTerrain;
 
-		BillboardList o_grassPatch;
-		BillboardList o_flowerPatch;
-
-		WorldObject		o_tree;
-		WorldObject		o_lowPolyTree;
 
 		bool containedFlag;
 
-		WorldObject		o_cubeWireFrame;
 		WorldObject     o_worldAxis;
 		WorldObject		o_bezierPoint;
-		WorldObject     o_ground;
-		SkyBox          o_skybox;
-		WorldObject		o_sampleBullet;
-		WorldObject		o_animatedLegoDude;
+
 
 		int debugCurClientId;
-
-		list<Particle> m_bullets;
-		queue<int> m_objectIndexPool;
-
-		ObjectId m_defaultPlayerObjectId;
-		int getDefaultPlayerId();
-
-		void initMap(FOArray<WorldObject*>& objects, FOArray<Player*>& players, KDTree& tree);
-
 
 
 		GUIManager m_gui;
@@ -728,259 +613,72 @@ class FaceOff
 		float m_zoomFactor;
 	public:
 
-		KDTreeNode* hitNode;
 		long long m_currentTimeMillis;
-		bool singlePlayerMode;
 
 
-		RakNet::Packet* sv_packet;
-		RakNet::Packet* cl_packet;
-
-		// RakNet::BitStream bsOut;
-
-		// RakNet::RakString rs;
-		// RakNet::SystemAddress server_address;
-
-
-		vector<WorldObject*> objectsAlreadyTestedForFire;
-
-		void destroyWorldObjectByIndex(vector<WorldObject*>& objects, int i);
-		// void destroyWorldObjectByIndex(int i);
-		// vector<WorldObject*> m_objects;
-
-		// keeping two copies
-		// vector<WorldObject*> sv_objects;	
-		// vector<WorldObject*> cl_objects;	// used for client parsing server snapshot and rendering
 
 		int timeProfilerIndex;
 		long long timeProfiler[TIME_PROFILER_BUFFER];
-//		uint64 timeProfiler[TIME_PROFILER_BUFFER];
 
 		int fpsProfilerIndex;
 		int fpsProfiler[FPS_PROFILER_BUFFER];
-
-		bool interpolateFlag;
-		bool predictionOn;
-
-		bool serverRunPhysicsOnReadPacketsFlag;
 
 		
 		FOArray<WorldObject*> sv_objects;
 		FOArray<WorldObject*> cl_objects;	// this never creates, only sets objects
 
-//		FOPlayerArray sv_players;
-//		FOPlayerArray cl_players;
-
-		FOArray<Player*> sv_players;
-		FOArray<Player*> cl_players;
-
-		KDTree sv_objectKDtree;
-		KDTree cl_objectKDtree;
-
-//		queue<int> sv_emptyBucketPool;
-
-		vector<FireWorkEffect*> m_fireWorkEffects;
-		vector<SmokeEffect*> m_smokeEffects;
-
-		// used for both server or client
-		// the queue that server handles input from the client
-		
-		// server uses this to receive client inputs in the network thread
-
-		// client uses this to collect inputs in each frame
-
-		// int lastObjectIndex;
-		// void addObject(vector<WorldObject*> objects, WorldObject* object);
-
-		// vector<WorldObject*> m_hitPointMarks;
-		// vector<FireWorkEffect*> m_fireWorkEffects;
-
-	//	CollisionDetectionTestPairs collisionDetectionTestPairs;
-	//	CollisionDetectionTestPairs clientInputCollisionDetectionTestPairs;
 
 
-		// networking portion
-		Client m_client;	// for the main player
-		Server m_server;
-
-		FaceOff();
-		FaceOff(int nice);
-		~FaceOff();
+		ZillowClone();
+		ZillowClone(int nice);
+		~ZillowClone();
 
 		/// init functions
 		void init();
 		void initObjects();
 
 		void initGUI();
-		void initAudio();
+
 		
 		int endWithError(char* msg, int error = 0);
 
-		void handleDeviceEvents();
 		void serverHandleDeviceEvents();
 		void clientHandleDeviceEvents();
 
-		void initNetwork();
-		void initNetworkLobby();
-		void startNetworkThread();
 
-		void RakNetFunction();
-
-		void deserializePlayerAndWeaponAndAddToWorld(Player* p, RakNet::BitStream& bs, bool curPlayerFlag);
-		void deserializeEntityAndAddToWorld(WorldObject* obj, RakNet::BitStream& bs);
-
-		void replyBackToNewClient(ObjectId playerId, RakNet::BitStream& bs);
-		void broadCastNewClientJoining(ObjectId playerId, RakNet::BitStream& bs);
 
 		void start();
 		void update();
 
-		void initMap();
+
 
 		int getAverageFPS();
 
-		void interpolateEntities();
-
-		void serverFrame(long long dt);
 		void clientFrame(long long dt);
 
-		void serverReadPackets();
-		void clientReadPackets();
-
-		void serverCalculatePing();
-		void serverCheckTimeouts();
-
-		void serverSimulationTick(int msec);
-		void clientSimulationTick();
-
-//		void serverRunClientMoveCmd(int clientId, UserCmd cmd);
-		void serverRunClientMoveCmd(ObjectId playerId, UserCmd cmd);
-
-		void serverSendClientMessages();
-
-		void serverSendClientSnapshot(int clientId);
-		void serverBuildClientSnapshot(Snapshot* from, Snapshot* to, RakNet::BitStream& bs);
-		
-		void serverWritePlayers(int clientId, Snapshot* from, Snapshot* to, RakNet::BitStream& bs);
-		void serverWriteDefaultPlayer(Player* p, RakNet::BitStream& bs);
-		void serverWriteOtherPlayer(Player* p, RakNet::BitStream& bs);
-
-		void serverWriteEntities(int clientId, Snapshot* from, Snapshot* to, RakNet::BitStream& bs);
-		void serverWriteNewWorldObject(WorldObjectState* obj1, RakNet::BitStream& bs);
-		void serverWriteDeltaWorldObject(WorldObjectState* obj0, WorldObjectState* obj1, RakNet::BitStream& bs, bool force);
-		void serverWriteRemoveWorldObject(WorldObjectState* obj0, RakNet::BitStream& bs);
-
-		void serverConstructSnapshotToClient();
 
 
-		void clientParseSnapshot(RakNet::BitStream& bs);
-		void clientParsePlayers(ClientSnapshot* prev, ClientSnapshot* cur, RakNet::BitStream& bs);
-		void clientParsePlayer(ClientSnapshot* cur, int flags, RakNet::BitStream& bs);
-		void clientParseDefaultPlayer(ClientSnapshot* cur, int flags, ObjectId playerId, RakNet::BitStream& bs);
-		void clientParseOtherPlayer(ClientSnapshot* cur, int flags, ObjectId playerId, RakNet::BitStream& bs);
 
-		void clientParseEntities(ClientSnapshot* prev, ClientSnapshot* cur, RakNet::BitStream& bs);
-		void clientParseDeltaEntity(ClientSnapshot* cur, int flags, RakNet::BitStream& bs);
-		void clientParseEntityData(WorldObject* obj, int flags, RakNet::BitStream& bs);
-		void clientParseAddEntity(ClientSnapshot* cur, int flags, RakNet::BitStream& bs);
-		void clientParseRemoveEntity(ClientSnapshot* cur, int flags, RakNet::BitStream& bs);
 
-		/*
-		1	CLIENT_INPUT						bsOut.Write((RakNet::MessageID)CLIENT_INPUT);
-		4	sequence number						bsOut.Write(m_client.netchan.outgoingSequence);
-		4	m_defaultPlayerID					bsOut.Write(m_defaultPlayerID);
-		4	m_client.lastServerMsgSequence		bsOut.Write(m_client.lastServerMsgSequence);
-		1	m_client.cmdNum						bsOut.Write(m_client.cmdNum);
-		?	cmd									cmd.serialize(bsOut);
-		*/
-		void clientSendCmd();
-		void clientSendPacket(RakNet::BitStream& bs);
-
-		UserCmd clientCreateNewCmd();
-		void clientCheckForResend();
-
-		void clientPrediction();
-
-		uint8_t svFireWeaponCollisionFlags[ENTITY_COLLISION_FLAG_SIZE];
-		void processUserFireWeapon(Player* p);
-
-		void UpdateDynamicEntitiesAnimations();
 		void render();
-		void renderEntities(Pipeline& p, Renderer* r);
-//		void renderDynamicEntities(Pipeline& pipeline, Renderer* renderer, vector<glm::mat4>& transformBuffers, bool animateFlag);
-//		void renderDynamicEntities(Pipeline& pipeline, AnimationModelRenderer* renderer, bool animateFlag);
-//		void renderDynamicEntities(Pipeline& p, AnimationModelRenderer& r);
-		void renderDynamicEntities(Pipeline& p, Renderer* r);
-		void renderDebug();
 
-//		void simulatePlayerPhysics(KDTree& tree, Player* p, int i, bool setCollsionFlagsBothWays);
-//		void simulateObjectPhysics(KDTree& tree, FOArray<WorldObject*>& objects, WorldObject* object, int i, bool setCollsionFlagsBothWays);
-	
-		void simulatePlayerPhysics(KDTree& tree, Player* p, bool setCollsionFlagsBothWays);
-		void simulateObjectPhysics(KDTree& tree, FOArray<WorldObject*>& objects, WorldObject* object, bool setCollsionFlagsBothWays);
-		void checkNeighbors(KDTree& tree, WorldObject* obj, bool setCollsionFlagsBothWays);
 
-		void clearCollisionDetectionFlags();
-		bool testCollisionDetection(WorldObject* a, WorldObject* b, ContactData& contactData);
-		
 		void GetTimeProfilerAverages();
 
 
 
 		void renderGUI();
 
-		void startCB();
-		void resetGameBoardCB();
-		
-	//	unsigned int serverAbsoluteTime;
-	//	unsigned int clientAbsoluteTime;
-
-//		Uint32 serverAbsoluteTime;	// absoluteTime
-//		Uint32 clientAbsoluteTime;	// absoluteTime
-
-//		Uint32 serverRealTime;	// absoluteTime
-//		Uint32 clientRealTime;	// absoluteTime
 
 
 		vector<int> latencyOptions;		// round trip
 		int latency;					// rount trip latency in milliseconds
 		int curLatencyOption;
 
-		vector<float> packetLossOptions;
-		float packetLoss;	// percentage of packets lost
-		int curPacketLossOption;
+	
 
-		
-
-		// this is used to simulate packet loss and packet delay on a single player
-
-		PacketQueue clientToServer;
-		PacketQueue serverToClient;
-		
-		void clientToServerSendPacket(RakNet::SystemAddress& address, RakNet::BitStream& bs);
-		void serverToClientSendPacket(RakNet::SystemAddress& address, RakNet::BitStream& bs);
-		
-		void processPacketQueue(unsigned int curAbsoluteTime, PacketQueue& packetQueue, bool isServerToClient);
 
 		long long getCurrentTimeMillis();
-
-		int noneCounter;
-
-
-		// used for collision detection
-		vector<WorldObject*> neighbors;
 };
-
-/*
-thread m_networkThread;
-
-// void clientNetworkThread();
-// void serverNetworkThread();
-// MoveQueue m_inputQueue;
-
-// queue<Move> m_clientInputQueue;
-// mutex m_clientInputMutex;
-
-*/
 
 #endif

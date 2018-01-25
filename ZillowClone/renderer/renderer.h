@@ -10,27 +10,7 @@
 #include "utility_gl_uni_loc.h"
 #include <stack>
 
-#include "scene_light_render_helper.h"
-#include "animation_model_render_helper.h"
-
 using namespace std;
-
-
-
-enum RenderPass
-{
-	RENDER_PASS1 = 0,
-	RENDER_PASS2,
-	RENDER_PASS3,
-	RENDER_PASS4,
-	RENDER_PASS5,
-	RENDER_PASS6
-};
-
-const int SHADOW_RENDER = 0;
-const int TWOPASS_RAYCASTING_RENDER = 1;
-const int DEPTH_TEXTURE_RENDER = 2;
-const int DEFERRED_SHADING_RENDER = 3;
 
 
 struct MatricesUniLoc
@@ -379,9 +359,6 @@ class Renderer
 		static Object findRendererObject(const Array arr, string rName);
 		static void initRenderer(const Object obj, Renderer* r, string path);
 		static void initRenderer(const Object obj, Renderer* r);
-
-		AnimationModelRenderHelper* animationHelper;
-		SceneLightRenderHelper* lightHelper;
 		
 		MatricesUniLoc m_matricesUniLocs;
 		Shader* m_shader;

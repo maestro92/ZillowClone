@@ -2,20 +2,15 @@
 #define	WORLD_OBJECT_H_
 #pragma warning(disable: 4996)
 #include "utility.h"
-#include "weapon_enum.h"
 #include "renderer.h"
 #include "model_enum.h"
 #include "model.h"
-#include "animation_helper.h"
 #include <string>
-#include "cube_wireframe_model.h"
-#include "collision_detection_geometry.h"
 #include "global.h"
 
 #include "shared.h"
 #include <vector>
 
-struct KDTreeNode;
 
 const glm::vec3 NEG_GRAVITY = glm::vec3(0, -9.8, 0);
 const glm::vec3 NEG_HALF_GRAVITY = glm::vec3(0, -4.9, 0);
@@ -70,9 +65,6 @@ class WorldObject
 		glm::mat4 m_modelMatrix;
 
 
-
-
-
 		ObjectId objectId;
 
 		bool isPlayer();
@@ -81,28 +73,18 @@ class WorldObject
 		ObjectId ownerId;
 
 		bool active;
-		// CollisionDetectionGeometry* m_geometry;
-		
-		// collision geometry, we use component based
-		CDEnum m_geometryType;
-		AABB* m_aabb;
-		Sphere* m_sphere;
-		
+
 		Model* m_model;
 
 
 
 		EntityType getEntityType();
 		DynamicType getDynamicType();
-		CDEnum getGeometryType();
+
 
 
 		inline void setName(string s);
 		inline string getName();
-
-		int getCollisionFlagIndex();
-		void resetCollisionFlags();
-		void registerCollsionFlag(int i);
 
 
         inline void setScale(float s);
@@ -117,7 +99,6 @@ class WorldObject
 
 		inline void setModelEnum(int modelEnum);
 		inline void setModel(Model* model);
-		inline int getModelEnum();
 
 		inline void updateModelMatrix();
 
@@ -150,14 +131,6 @@ class WorldObject
 		virtual void renderSingle(Pipeline& p, Renderer* r);
 		virtual void renderGroup(Pipeline& p, Renderer* r);
 
-		CubeWireFrameModel* m_wireFrameModel;
-		CubeWireFrameModel* m_staticWireFrameModel;
-
-		virtual void renderStaticWireFrameGroup(Pipeline& p, Renderer* r);
-		virtual void renderWireFrameGroup(Pipeline& p, Renderer* r);
-
-		void setCollisionDetectionGeometry(CDEnum type);
-		void updateCollisionDetectionGeometry();
 
 		inline void setMaterialEnergyRestitution(float res);
 		inline float getMaterialEnergyRestitution();
@@ -172,52 +145,27 @@ class WorldObject
 
 		virtual void updateGameInfo();
 
-		void updateAnimModelFrame(long long nowTime_ms);
-		void updateAnimModelFrame(long long nowTime_ms, vector<glm::mat4>& boneTranforms);
 
 
-		void addParentNode(KDTreeNode* node);
-
-		// check if we should skip itself testing in the collision detection
-		virtual bool ignorePhysics();
-
-		// check if we ignore physics testing with the object with the instanceId
-		virtual bool ignorePhysicsWith(WorldObject* obj);
 		
 		bool shouldSend(int clientId);
 
-		bool alreadyTestedPhysicsWith(WorldObject* obj);
-
-		virtual WeaponSlotEnum getWeaponSlot();
-		virtual WeaponNameEnum getWeaponName();
 
 		WorldObjectState prevState;
 		inline WorldObjectState getState();
 
-		void clearParentNodes();
-		vector<KDTreeNode*> m_parentNodes;
+
 		queue<int> m_emptyIndexPool;
 		
 		bool inMidAir;
 
 		void takeDamage(int damage);
 
-		void initAnimationHelper();
-
-		AnimationHelper* animationHelper;
-
-		virtual void serialize_New(RakNet::BitStream& bs);
-		virtual void deserialize_New(RakNet::BitStream& bs);
-
-		void serialize_Delta(int flags, RakNet::BitStream& bs);
-		void deserialize_Delta(int flags, RakNet::BitStream& bs);
 
 		void setHP(int hp);
 		void setArmor(int armor);
 
 		void print_uint8_t(uint8_t n);
-
-		void printParentTrees();
 
 		bool isDead();
 
@@ -429,15 +377,6 @@ inline void WorldObject::setModel(Model* model)
 		{}
 	}
 	m_model = model;
-	m_wireFrameModel = new CubeWireFrameModel(model->m_aabb);
-
-	if (m_model->isAnimated())
-	{
-		animationHelper = new AnimationHelper();
-	}
-
-//	updateAABB();
-//	m_staticWireFrameModel = new CubeWireFrameModel(m_aabb);
 }
 
 
@@ -462,11 +401,6 @@ inline float WorldObject::getMass()
 inline float WorldObject::getInvMass()
 {
 	return m_invMass;
-}
-
-inline CDEnum WorldObject::getGeometryType()
-{
-	return m_geometryType;
 }
 
 inline void WorldObject::setMaterialEnergyRestitution(float res)

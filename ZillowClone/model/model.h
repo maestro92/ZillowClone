@@ -17,7 +17,6 @@
 #include <assimp/Importer.hpp>      // C++ importer interface
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include "collision_detection_geometry.h"
 #include "texture.h"
 
 using namespace std;
@@ -87,8 +86,6 @@ class Model
         void clear();
 
         GLuint m_modelGeometry;
-
-		AABB m_aabb;
 
         vector<Mesh> m_meshes;
 

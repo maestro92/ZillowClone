@@ -20,8 +20,8 @@ unordered_map<string, DATA_PAIR_TYPE> Renderer::m_stringToDPTypeEnum
 
 Renderer::Renderer()
 {
-	animationHelper = nullptr;
-	lightHelper = nullptr; 
+
+
 }
 
 Renderer::~Renderer()
@@ -247,18 +247,6 @@ void Renderer::setUniLocs()
 	for (int i = 0; i < m_dataPairs.size(); i++)
 	{
 		m_dataPairs[i]->setUniLoc();
-	}
-
-	/*
-	if (lightHelper != nullptr)
-	{
-		lightHelper.set
-	}
-	*/
-
-	if (animationHelper != nullptr)
-	{
-		animationHelper->setUniLocs();
 	}
 }
 
