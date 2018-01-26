@@ -68,6 +68,11 @@ void GUIManager::init(int screenWidth, int screenHeight)
 	xOffset = 0; yOffset = 0;
 	m_fpsLabel = new Label("90", xOffset, yOffset, 50, 50, GRAY);
 
+	float width = 200;
+	float height = 50;
+	xOffset = utl::SCREEN_WIDTH - width; yOffset = 0;
+	m_drawingModeLabel = new Label("Off", xOffset, yOffset, width, height, BLUE);
+
 	int aimWidth = 20;
 	int aimHeight = 20;
 
@@ -90,6 +95,7 @@ void GUIManager::init(int screenWidth, int screenHeight)
 	addGUIComponent(m_armorBar);
 	addGUIComponent(m_ammoBar);
 	addGUIComponent(m_fpsLabel);
+	addGUIComponent(m_drawingModeLabel);
 	addGUIComponent(m_horiAim);
 	addGUIComponent(m_vertAim);
 	
@@ -177,10 +183,6 @@ void GUIManager::setFPS(int fps)
 }
 
 
-void GUIManager::setSniperZoomMode(bool b)
-{
-	m_sniperZoomMode = b;
-}
 
 void GUIManager::initGUIRenderingSetup()
 {
@@ -274,6 +276,18 @@ void GUIManager::addGUIComponent(Control* control)
 int GUIManager::getNumGUIComponent()
 {
 	return m_GUIComponents.size();
+}
+
+void GUIManager::setDrawingModeFlag(bool flag)
+{
+	if (flag)
+	{
+		m_drawingModeLabel->setText("On");
+	}
+	else
+	{
+		m_drawingModeLabel->setText("Off");
+	}
 }
 
 

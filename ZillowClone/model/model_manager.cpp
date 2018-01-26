@@ -22,11 +22,12 @@ ModelManager::~ModelManager()
 
 void ModelManager::init()
 {
+	m_quad = new QuadModel(1, 1);
 	m_xyzAxis = new XYZAxisModel();
-
 	m_bezierPoints = new BezierPoints();
 
 	m_models.resize(ModelEnum::NUM_MODELS);
+	m_models[ModelEnum::quad] = m_quad;
 	m_models[ModelEnum::xyzAxis] = m_xyzAxis;
 	m_models[ModelEnum::bezierPoints] = m_bezierPoints;
 

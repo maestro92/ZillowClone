@@ -44,7 +44,6 @@ class GUIManager
 		void setFPS(int fps);
 		*/
 
-		void setSniperZoomMode(bool b);
 
 		void initRenderer(const Array arr, Renderer* r, string name);
 		Object findRendererObject(const Array arr, string name);
@@ -74,6 +73,8 @@ class GUIManager
 		void setAmmo(int ammo);
 		void setFPS(int FPS);
 
+		void setDrawingModeFlag(bool flag);
+
     private:
         int m_GUIComponentsID;
         int m_GUIComponentsFlags;
@@ -85,6 +86,7 @@ class GUIManager
 		Label* m_horiAim;
 		Label* m_vertAim;
 		Label* m_fpsLabel;
+		Label* m_drawingModeLabel;
 
         vector<Control*> m_GUIComponents;
 

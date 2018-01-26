@@ -45,6 +45,7 @@ class ModelManager
 		Model* get(int modelEnum);
 
 	private:
+		Model* m_quad;
 		Model* m_xyzAxis;
 		Model* m_bezierPoints;
 

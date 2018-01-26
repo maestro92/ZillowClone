@@ -70,7 +70,7 @@ const float FIXED_UPDATE_TIME_s = _FIXED_UPDATE_TIME_s / GAME_SPEED;
 const float FIXED_UPDATE_TIME_ms = FIXED_UPDATE_TIME_s * 1000;
 //const float _FIXED_UPDATE_TIME_s = 
 
-
+const float MOUSE_DIST_THRESHOLD = 2;
 
 
 const int SV_FRAMES_PER_SECOND = 20;
@@ -168,12 +168,13 @@ void ZillowClone::init()
 	//Initialize clear color
 	glClearColor(0.0f, 0.5f, 0.0f, 1.0f);
 
-	m_zoomFactor = 1.0f;
 	m_pipeline.setMatrixMode(PROJECTION_MATRIX);
 	m_pipeline.loadIdentity();
 //	m_pipeline.perspective(45 * m_zoomFactor, utl::SCREEN_WIDTH / utl::SCREEN_HEIGHT, utl::Z_NEAR, utl::Z_FAR);
-	float range = 50;
-	m_pipeline.ortho(-range, range, -range, range, utl::Z_NEAR, utl::Z_FAR);
+
+	m_zoom = 10;
+	m_range = 50;
+	m_pipeline.ortho(-m_range, m_range, -m_range, m_range, utl::Z_NEAR, utl::Z_FAR);
 
 
 	Model::enableVertexAttribArrays();
@@ -193,11 +194,9 @@ void ZillowClone::initObjects()
 {
 	float scale = 100.0;
 	o_worldAxis.setScale(scale);
-	o_worldAxis.setModelEnum(ModelEnum::xyzAxis);
 	o_worldAxis.setModel(global.modelMgr->get(ModelEnum::xyzAxis));
 
 	o_bezierPoint.setScale(20);
-	o_bezierPoint.setModelEnum(ModelEnum::bezierPoints);
 	o_bezierPoint.setModel(global.modelMgr->get(ModelEnum::bezierPoints));	
 }
 
@@ -387,6 +386,90 @@ void FaceOff::serverHandleDeviceEvents()
 }
 #endif
 
+void ZillowClone::onMouseBtnUp()
+{
+	if (inDrawingMode)
+	{
+		startedCurrentLine = false;
+
+
+	}
+}
+
+// VBO with dynamically changing number of points
+// https://www.opengl.org/discussion_boards/showthread.php/178828-VBO-with-dynamically-changing-number-of-points-%21%21
+// will need to store it both CPU and GPU
+// need it on CPU to process enclosed data
+// need it on GPU for rendering
+// thickness is inversely proportional
+
+
+// method1: load your sprites, then render them as textured quad.
+// method2: glBufferData Way
+
+void ZillowClone::onMouseBtnDown()
+{
+
+	int tmpx, tmpy;
+	SDL_GetMouseState(&tmpx, &tmpy);
+
+	utl::debug("here is ");
+
+	if (inDrawingMode)
+	{
+		startedCurrentLine = true;
+		glm::vec2 newPoint = glm::vec2(tmpx, tmpy);
+
+		utl::debug("newPoint is ", newPoint);
+		if (isNewPoint(newPoint))
+		{
+			points.push_back(newPoint);
+			WorldObject obj = WorldObject();
+			obj.setModel(global.modelMgr->get(ModelEnum::quad));
+			obj.setPosition(glm::vec3(newPoint.x/100.0, newPoint.y/100.0, 0));
+
+			obj.setScale(2);
+
+			pointRenderHandles.push_back(obj);
+
+			utl::debug("count is ", pointRenderHandles.size());
+			
+		}
+
+		lastPoint = newPoint;
+	}
+	else
+	{
+
+
+	}
+}
+
+
+
+bool ZillowClone::isNewPoint(glm::vec2 newPoint)
+{
+	glm::vec2 diff = newPoint - lastPoint;
+
+	float distSqr = glm::dot(diff, diff);
+
+
+	utl::debug("newPoint is ", newPoint);
+	utl::debug("lastPoint is ", lastPoint);
+
+	utl::debug("distSqr is ", distSqr);
+	utl::debug("MOUSE_DIST_THRESHOLD is ", MOUSE_DIST_THRESHOLD);
+
+	if (distSqr < MOUSE_DIST_THRESHOLD)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
+}
 
 
 void ZillowClone::update()
@@ -402,52 +485,73 @@ void ZillowClone::update()
 
 	while (SDL_PollEvent(&event))
 	{
-		if (event.type == SDL_KEYDOWN)
+		switch (event.type)
 		{
-			switch (event.key.keysym.sym)
-			{
-				case SDLK_ESCAPE:
-					isRunning = false;
-					break;
-				case SDLK_x:
+			case SDL_KEYDOWN:
+				switch (event.key.keysym.sym)
+				{
+					case SDLK_ESCAPE:
+						isRunning = false;
+						break;
 
-					break;
-				case SDLK_z:
+					case SDLK_q:
 
-					break;
-				default:
-					break;
-			}
-		}
-		if (event.type == SDL_KEYUP)
-		{
-			switch (event.key.keysym.sym)
-			{
-				case SDLK_F1:				
-					break;
+						updateZoom(true);
 
 
-				case SDLK_F2:
+						break;
+					case SDLK_w:
+						updateZoom(false);
 
-					break;
+						break;
 
-				case SDLK_F3:
+					case SDLK_x:
+						break;
+					case SDLK_z:
+						utl::debug("In here");
+						inDrawingMode = !inDrawingMode;
+						m_gui.setDrawingModeFlag(inDrawingMode);
+						break;
+					default:
+						break;
+				}
+				break;
+			
+			case SDL_MOUSEBUTTONDOWN:
+				onMouseBtnDown();
+				break;
 
-					break;
-				case SDLK_F4:
+			case SDL_MOUSEBUTTONUP:
+				onMouseBtnUp();
+				break;
 
-					break;
 
-				case SDLK_F5:
-					break;
-
-				default:
-					break;
-			}
 		}
 	}
+
+	if (startedCurrentLine)
+	{
+		onMouseBtnDown();
+
+	}
+
+
 }
 
+void ZillowClone::updateZoom(bool zoomingIn)
+{
+	if (zoomingIn)
+	{
+		m_range *= 10;
+		m_pipeline.ortho(-m_range, m_range, -m_range, m_range, utl::Z_NEAR, utl::Z_FAR);
+	}
+	else
+	{
+		m_range /= 10;
+		m_pipeline.ortho(-m_range, m_range, -m_range, m_range, utl::Z_NEAR, utl::Z_FAR);
+	}
+	utl::debug("m_range ", m_range);
+}
 
 /*
 
@@ -462,6 +566,7 @@ Frame
 
 	update camera
 */
+
 
 
 
@@ -501,6 +606,19 @@ void ZillowClone::render()
 
 	p_renderer->disableShader();
 	
+
+	// Rendering wireframes
+	p_renderer = &global.rendererMgr->r_fullColor;
+	p_renderer->setData(R_FULL_COLOR::u_color, BLUE);
+	p_renderer->enableShader();
+
+		for (int i = 0; i < pointRenderHandles.size(); i++)
+		{
+			WorldObject obj = pointRenderHandles[i];
+			obj.renderGroup(m_pipeline, p_renderer);
+		}
+
+	p_renderer->disableShader();
 
 
 
@@ -671,7 +789,7 @@ void ZillowClone::renderGUI()
 
 
 
-
+/*
 void ZillowClone::clientHandleDeviceEvents()
 {
 	while (SDL_PollEvent(&event))
@@ -679,21 +797,21 @@ void ZillowClone::clientHandleDeviceEvents()
 		int tmpx, tmpy;
 		switch (event.type)
 		{
-		case SDL_QUIT:
-			isRunning = false;
-			break;
+			case SDL_QUIT:
+				isRunning = false;
+				break;
 
-		case SDL_MOUSEBUTTONUP:
-			break;
+			case SDL_MOUSEBUTTONUP:
+				break;
 
-		case SDL_MOUSEBUTTONDOWN:
+			case SDL_MOUSEBUTTONDOWN:
 
-			switch (event.button.button)
-			{
-				int tmpx, tmpy;
-			case SDL_BUTTON_LEFT:
-				SDL_GetMouseState(&tmpx, &tmpy);
-				m_mouseState.m_leftButtonDown = true;
+				switch (event.button.button)
+				{
+					int tmpx, tmpy;
+					case SDL_BUTTON_LEFT:
+						SDL_GetMouseState(&tmpx, &tmpy);
+						m_mouseState.m_leftButtonDown = true;
 
 
 
@@ -709,7 +827,6 @@ void ZillowClone::clientHandleDeviceEvents()
 				m_mouseState.m_rightButtonDown = true;
 
 				m_zoomedIn = !m_zoomedIn;
-				m_gui.setSniperZoomMode(m_zoomedIn);
 
 				if (m_zoomedIn)
 				{
@@ -741,27 +858,6 @@ void ZillowClone::clientHandleDeviceEvents()
 			case SDLK_0:
 				containedFlag = !containedFlag;
 				break;
-				/*
-				// main gun
-				case SDLK_1:
-				m_players[m_defaultPlayerID]->switchWeapon(WeaponSlotEnum::MAIN);
-				break;
-
-				// pistol
-				case SDLK_2:
-				m_players[m_defaultPlayerID]->switchWeapon(WeaponSlotEnum::PISTOL);
-				break;
-
-				// MELEE
-				case SDLK_3:
-				m_players[m_defaultPlayerID]->switchWeapon(WeaponSlotEnum::MELEE);
-				break;
-
-				// GRENADES
-				case SDLK_4:
-				m_players[m_defaultPlayerID]->switchWeapon(WeaponSlotEnum::PROJECTILE);
-				break;
-				*/
 
 			case SDLK_8:
 			{
@@ -787,45 +883,22 @@ void ZillowClone::clientHandleDeviceEvents()
 
 			case SDLK_g:
 			{
-
 				utl::debug("Dropping Weapon");
-				/*
-				Weapon* droppedWeapon = m_players[m_defaultPlayerID]->drop();
-				if (droppedWeapon != NULL)
-				{
-				m_objectKDtree.insert(droppedWeapon);
-				}
-				*/
 			}
 			break;
 
-
-
-
 			case SDLK_SPACE:
-				//		if (m_players[m_defaultPlayerID]->m_velocity.y == 0.0)
-				//		utl::debug(">>>> Just Jumped");
-				//		utl::debug("m_players[m_defaultPlayerID]->m_velocity", m_players[m_defaultPlayerID]->m_velocity);
-
-				//		if (m_players[m_defaultPlayerID]->isNotJumping())
-				//			m_players[m_defaultPlayerID]->m_velocity += glm::vec3(0.0, 150.0, 0.0) * utl::GRAVITY_CONSTANT;
 
 				break;
 
 			case SDLK_z:
-				/*
-				if (m_isServer)
-				m_serverCamera.setMouseIn(false);
-				else
-				m_players[m_defaultPlayerID]->m_camera->setMouseIn(false);
-				|*/
 				break;
 			}
 			break;
 		}
 	}
-
 }
+*/
 
 
 
