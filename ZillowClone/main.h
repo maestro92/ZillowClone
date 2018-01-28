@@ -390,17 +390,21 @@ class ZillowClone
 
 		void onMouseBtnUp();
 		void onMouseBtnDown();
+		void onMouseBtnHold();
 
 		void start();
 		void update();
 		bool inDrawingMode;
+		bool isFirstPointInCurrentLine;
 		bool startedCurrentLine;
 
+		glm::vec3 screenToWorldPoint(glm::vec2 screenPoint);
 
+		void addPoint(glm::vec2 worldPoint);
 		int getAverageFPS();
 
 		void clientFrame(long long dt);
-
+		void onExistDrawingMode();
 
 		bool isNewPoint(glm::vec2 newPoint);
 

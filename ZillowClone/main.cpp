@@ -70,7 +70,7 @@ const float FIXED_UPDATE_TIME_s = _FIXED_UPDATE_TIME_s / GAME_SPEED;
 const float FIXED_UPDATE_TIME_ms = FIXED_UPDATE_TIME_s * 1000;
 //const float _FIXED_UPDATE_TIME_s = 
 
-const float MOUSE_DIST_THRESHOLD = 2;
+const float MOUSE_DIST_THRESHOLD = 0.05;
 
 
 const int SV_FRAMES_PER_SECOND = 20;
@@ -391,8 +391,6 @@ void ZillowClone::onMouseBtnUp()
 	if (inDrawingMode)
 	{
 		startedCurrentLine = false;
-
-
 	}
 }
 
@@ -407,36 +405,42 @@ void ZillowClone::onMouseBtnUp()
 // method1: load your sprites, then render them as textured quad.
 // method2: glBufferData Way
 
+
+void ZillowClone::addPoint(glm::vec2 worldPoint)
+{
+	points.push_back(worldPoint);
+	WorldObject obj = WorldObject();
+	obj.setModel(global.modelMgr->get(ModelEnum::quad));
+	obj.setPosition(glm::vec3(worldPoint.x, worldPoint.y, 0));
+
+	obj.setScale(1);
+	pointRenderHandles.push_back(obj);
+}
+
+
+glm::vec3 ZillowClone::screenToWorldPoint(glm::vec2 screenPoint)
+{
+	glm::vec4 viewPort = glm::vec4(0, 0, utl::SCREEN_WIDTH, utl::SCREEN_HEIGHT);
+	glm::vec3 temp = glm::vec3(screenPoint.x, screenPoint.y, 0);
+
+	glm::vec3 worldPoint = glm::unProject(temp, m_pipeline.getModelViewMatrix(), m_pipeline.getProjectionMatrix(), viewPort);
+	return worldPoint;
+}
+
 void ZillowClone::onMouseBtnDown()
 {
-
 	int tmpx, tmpy;
 	SDL_GetMouseState(&tmpx, &tmpy);
-
-	utl::debug("here is ");
+	tmpx = utl::SCREEN_WIDTH - tmpx;
 
 	if (inDrawingMode)
 	{
 		startedCurrentLine = true;
-		glm::vec2 newPoint = glm::vec2(tmpx, tmpy);
-
-		utl::debug("newPoint is ", newPoint);
-		if (isNewPoint(newPoint))
-		{
-			points.push_back(newPoint);
-			WorldObject obj = WorldObject();
-			obj.setModel(global.modelMgr->get(ModelEnum::quad));
-			obj.setPosition(glm::vec3(newPoint.x/100.0, newPoint.y/100.0, 0));
-
-			obj.setScale(2);
-
-			pointRenderHandles.push_back(obj);
-
-			utl::debug("count is ", pointRenderHandles.size());
-			
-		}
-
-		lastPoint = newPoint;
+		glm::vec2 screenPoint = glm::vec2(tmpx, tmpy);
+		glm::vec3 worldPoint = screenToWorldPoint(screenPoint);
+		glm::vec2 tempWorldPoint = glm::vec2(worldPoint.x, worldPoint.y);		
+		addPoint(tempWorldPoint);
+		lastPoint = tempWorldPoint;
 	}
 	else
 	{
@@ -446,21 +450,43 @@ void ZillowClone::onMouseBtnDown()
 }
 
 
+void ZillowClone::onMouseBtnHold()
+{
+	int tmpx, tmpy;
+	SDL_GetMouseState(&tmpx, &tmpy);
+	tmpx = utl::SCREEN_WIDTH - tmpx;
+//	utl::debug("here is ");
+
+	if (startedCurrentLine)
+	{
+		glm::vec2 newPoint = glm::vec2(tmpx, tmpy);
+
+		glm::vec2 screenPoint = glm::vec2(tmpx, tmpy);
+		glm::vec3 worldPoint = screenToWorldPoint(screenPoint);
+		glm::vec2 tempWorldPoint = glm::vec2(worldPoint.x, worldPoint.y);
+
+		if (isNewPoint(tempWorldPoint))
+		{
+			addPoint(tempWorldPoint);
+		}
+		lastPoint = tempWorldPoint;
+	}
+}
+
 
 bool ZillowClone::isNewPoint(glm::vec2 newPoint)
 {
 	glm::vec2 diff = newPoint - lastPoint;
 
 	float distSqr = glm::dot(diff, diff);
+	/*
+	utl::debug("		newPoint is ", newPoint);
+	utl::debug("		lastPoint is ", lastPoint);
 
-
-	utl::debug("newPoint is ", newPoint);
-	utl::debug("lastPoint is ", lastPoint);
-
-	utl::debug("distSqr is ", distSqr);
-	utl::debug("MOUSE_DIST_THRESHOLD is ", MOUSE_DIST_THRESHOLD);
-
-	if (distSqr < MOUSE_DIST_THRESHOLD)
+	utl::debug("		distSqr is ", distSqr);
+	utl::debug("		MOUSE_DIST_THRESHOLD is ", MOUSE_DIST_THRESHOLD);
+	*/
+	if (distSqr > MOUSE_DIST_THRESHOLD)
 	{
 		return true;
 	}
@@ -471,6 +497,12 @@ bool ZillowClone::isNewPoint(glm::vec2 newPoint)
 
 }
 
+
+void ZillowClone::onExistDrawingMode()
+{
+	points.clear();
+	pointRenderHandles.clear();
+}
 
 void ZillowClone::update()
 {
@@ -510,6 +542,16 @@ void ZillowClone::update()
 					case SDLK_z:
 						utl::debug("In here");
 						inDrawingMode = !inDrawingMode;
+
+						if (inDrawingMode)
+						{
+
+						}
+						else
+						{
+							onExistDrawingMode();
+						}
+
 						m_gui.setDrawingModeFlag(inDrawingMode);
 						break;
 					default:
@@ -531,8 +573,7 @@ void ZillowClone::update()
 
 	if (startedCurrentLine)
 	{
-		onMouseBtnDown();
-
+		onMouseBtnHold();
 	}
 
 
