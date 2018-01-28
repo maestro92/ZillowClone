@@ -23,7 +23,7 @@ float tempYaw2 = 0;
 
 
 
-
+#define PI 3.14159265
 
 // the server simluates the game in descirete time steps called ticks
 
@@ -391,6 +391,8 @@ void ZillowClone::onMouseBtnUp()
 	if (inDrawingMode)
 	{
 		startedCurrentLine = false;
+		curDrawing.clear();
+		drawingList.push_back(curDrawing);
 	}
 }
 
@@ -408,13 +410,66 @@ void ZillowClone::onMouseBtnUp()
 
 void ZillowClone::addPoint(glm::vec2 worldPoint)
 {
-	points.push_back(worldPoint);
-	WorldObject obj = WorldObject();
-	obj.setModel(global.modelMgr->get(ModelEnum::quad));
-	obj.setPosition(glm::vec3(worldPoint.x, worldPoint.y, 0));
 
-	obj.setScale(1);
-	pointRenderHandles.push_back(obj);
+
+	if (curDrawing.size() > 0)
+	{
+
+		glm::vec2 lastPoint = curDrawing[curDrawing.size()-1];
+		curDrawing.push_back(worldPoint);
+		utl::debug(">>>>>>>>> Adding New Point, I have this many points", curDrawing.size());
+		utl::debug("		lastPoint", lastPoint);
+
+
+		WorldObject obj = WorldObject();
+		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
+
+		glm::vec2 diffVector = worldPoint - lastPoint;
+		glm::vec2 centerPoint = lastPoint + glm::vec2(diffVector.x / 2.0, diffVector.y / 2.0);
+		utl::debug("		centerPoint", centerPoint);
+		utl::debug("		worldPoint", worldPoint);
+
+
+		obj.setPosition(glm::vec3(centerPoint.x, centerPoint.y, 0));
+
+		float angle = atan2(diffVector.y, diffVector.x) * 180 / PI;
+
+		float length = glm::distance(lastPoint, worldPoint);
+
+
+		glm::vec3 scale(length, 1,1);
+
+		utl::debug("		scale", scale);
+
+		obj.setRotation(glm::rotate(angle, 0.0f , 0.0f, 1.0f));
+
+		obj.setScale(scale);
+		pointRenderHandles.push_back(obj);
+
+
+	}
+	else
+	{
+		curDrawing.push_back(worldPoint);
+		utl::debug("In here2");
+
+		WorldObject obj = WorldObject();
+		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
+		obj.setPosition(glm::vec3(worldPoint.x, worldPoint.y, 0));
+
+		obj.setScale(1);
+		pointRenderHandles.push_back(obj);
+	}
+	/*
+	{
+		WorldObject obj = WorldObject();
+		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
+		obj.setPosition(glm::vec3(worldPoint.x, worldPoint.y, 0));
+
+		obj.setScale(1);
+		actualRenderHandles.push_back(obj);
+	}
+	*/
 }
 
 
@@ -500,7 +555,8 @@ bool ZillowClone::isNewPoint(glm::vec2 newPoint)
 
 void ZillowClone::onExistDrawingMode()
 {
-	points.clear();
+	curDrawing.clear();
+	drawingList.clear();
 	pointRenderHandles.clear();
 }
 
@@ -583,12 +639,12 @@ void ZillowClone::updateZoom(bool zoomingIn)
 {
 	if (zoomingIn)
 	{
-		m_range *= 10;
+		m_range *= 2;
 		m_pipeline.ortho(-m_range, m_range, -m_range, m_range, utl::Z_NEAR, utl::Z_FAR);
 	}
 	else
 	{
-		m_range /= 10;
+		m_range /= 2;
 		m_pipeline.ortho(-m_range, m_range, -m_range, m_range, utl::Z_NEAR, utl::Z_FAR);
 	}
 	utl::debug("m_range ", m_range);
@@ -650,14 +706,27 @@ void ZillowClone::render()
 
 	// Rendering wireframes
 	p_renderer = &global.rendererMgr->r_fullColor;
-	p_renderer->setData(R_FULL_COLOR::u_color, BLUE);
+
 	p_renderer->enableShader();
+		p_renderer->setData(R_FULL_COLOR::u_color, BLUE);
 
 		for (int i = 0; i < pointRenderHandles.size(); i++)
 		{
 			WorldObject obj = pointRenderHandles[i];
 			obj.renderGroup(m_pipeline, p_renderer);
 		}
+
+
+
+
+		p_renderer->setData(R_FULL_COLOR::u_color, GREEN);
+		for (int i = 0; i < actualRenderHandles.size(); i++)
+		{
+			WorldObject obj = actualRenderHandles[i];
+			obj.renderGroup(m_pipeline, p_renderer);
+		}
+
+
 
 	p_renderer->disableShader();
 

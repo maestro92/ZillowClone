@@ -16,6 +16,7 @@ namespace ModelEnum
 		tree,
 		cube,
 		quad,
+		centeredQuad,
 		woodenBox,
 		legoMan,
 		ground,

@@ -425,8 +425,12 @@ class ZillowClone
 		int curLatencyOption;
 
 		glm::vec2 lastPoint;
-		vector<glm::vec2> points;
+		vector<glm::vec2> curDrawing;
+
+		vector< vector<glm::vec2>> drawingList;
+
 		vector<WorldObject> pointRenderHandles;
+		vector<WorldObject> actualRenderHandles;
 
 		long long getCurrentTimeMillis();
 };

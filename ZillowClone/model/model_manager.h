@@ -46,6 +46,7 @@ class ModelManager
 
 	private:
 		Model* m_quad;
+		Model* m_centeredQuad;
 		Model* m_xyzAxis;
 		Model* m_bezierPoints;
 
