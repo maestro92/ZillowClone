@@ -491,8 +491,6 @@ void ZillowClone::processCurrentDrawnLine()
 
 void ZillowClone::addPoint(glm::vec2 worldPoint)
 {
-
-	
 	utl::debug(">>>>>>>>> Adding New Point, I have this many points", worldPoint);
 	if (curDrawing.getNumPoints() > 0)
 	{
@@ -519,7 +517,7 @@ void ZillowClone::addPoint(glm::vec2 worldPoint)
 
 		glm::vec3 scale(length, 1,1);
 
-		utl::debug("		scale", scale);
+	//	utl::debug("		scale", scale);
 
 		obj.setRotation(glm::rotate(angle, 0.0f , 0.0f, 1.0f));
 
@@ -544,7 +542,7 @@ void ZillowClone::addPoint(glm::vec2 worldPoint)
 		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
 		obj.setPosition(glm::vec3(worldPoint.x, worldPoint.y, 0));
 
-		utl::debug("		worldPoint", worldPoint);
+	//	utl::debug("		worldPoint", worldPoint);
 
 		obj.setScale(1);
 		actualRenderHandles.push_back(obj);

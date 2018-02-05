@@ -23,6 +23,11 @@ struct Line
 		p0 = p0In;
 		p1 = p1In;
 	}
+
+	void print()
+	{
+		cout << "	" << p0.x << " " << p0.y << ",		 " << p1.x << " " << p1.y << endl;
+	}
 };
 
 

@@ -17,9 +17,12 @@ vector<Drawing::IntersectionInfo> Drawing::getIntersectionList(glm::vec2 p0, glm
 		{
 			// might intersect with two lines at the same point,
 			// we'll worry about that later
-			IntersectionInfo intersectionInfo(intersectionPoint, lp0, lp1, p0);
+			if (intersectionPoint.x != p0.x || intersectionPoint.y != p0.y)
+			{
+				IntersectionInfo intersectionInfo(intersectionPoint, lp0, lp1, p0);
 
-			intersectionEdges.push_back(intersectionInfo);
+				intersectionEdges.push_back(intersectionInfo);
+			}
 		}
 	}
 
@@ -38,8 +41,8 @@ bool sortByDistToStartPoint(Drawing::IntersectionInfo info0, Drawing::Intersecti
 
 void Drawing::processNewPoint(glm::vec2 point)
 {
-	cout << "Processing New Point" << endl;
-	if (getNumPoints() > 1)
+	cout << "	Processing New Point" << endl;
+	if (getNumPoints() > 0)
 	{
 		glm::vec2 lastPoint = getLastPoint();
 		vector<IntersectionInfo> intersections = getIntersectionList(lastPoint, point);
@@ -71,11 +74,18 @@ void Drawing::processNewPoint(glm::vec2 point)
 		tempLine = Line(lastPoint, point);
 		lines.push_back(tempLine);
 
+		points.push_back(point);
+
+		cout << "Printing points" << endl;
+		for (int i = 0; i < points.size(); i++)
+		{
+			cout << "	point is " << points[i].x << " " << points[i].y << endl;
+		}
+
 		cout << "Print lines" << endl;
 		for (int i = 0; i < lines.size(); i++)
 		{
-			utl::debug("	p0", lines[i].p0);
-			utl::debug("	p1", lines[i].p1);
+			lines[i].print();
 		}
 
 	}
