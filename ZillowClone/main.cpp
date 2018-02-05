@@ -198,6 +198,58 @@ void ZillowClone::initObjects()
 
 	o_bezierPoint.setScale(20);
 	o_bezierPoint.setModel(global.modelMgr->get(ModelEnum::bezierPoints));	
+
+
+
+//	lineMarkers
+
+	for (int i = -50; i <= 50; i += 10)
+	{
+		WorldObject obj = WorldObject();
+		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
+		obj.setPosition(glm::vec3(i, 0, 0));
+
+		obj.setScale(1);
+
+		lineMarkers.push_back(obj);
+	}
+
+
+
+	for (int i = -10; i <= 10; i += 10)
+	{
+		WorldObject obj = WorldObject();
+		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
+		obj.setPosition(glm::vec3(i, 10, 0));
+
+		obj.setScale(1);
+
+		lineMarkers.push_back(obj);
+
+
+		obj = WorldObject();
+		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
+		obj.setPosition(glm::vec3(i, -10, 0));
+
+		obj.setScale(1);
+
+		lineMarkers.push_back(obj);
+	}
+
+
+
+
+	curDrawing.onAddIntersection = [this](glm::vec2 point)
+	{
+		utl::debug("inside here in onAddIntersection");
+		WorldObject obj = WorldObject();
+		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
+		obj.setPosition(glm::vec3(point.x, point.y, 0));
+
+		obj.setScale(1);
+
+		actualRenderHandles.push_back(obj);
+	};
 }
 
 
@@ -391,10 +443,39 @@ void ZillowClone::onMouseBtnUp()
 	if (inDrawingMode)
 	{
 		startedCurrentLine = false;
-		curDrawing.clear();
+		
+/*
+		Vertex firstPoint = curDrawing.getFirstVertex();
+		Vertex lastPoint = curDrawing.getLastVertex();
+	
+		if (firstPoint.id != lastPoint.id)
+		{
+			// curDrawing.addEdge(firstPoint.id, lastPoint.id);
+
+			
+
+
+		}
+		*/
+		curDrawing.reset();
 		drawingList.push_back(curDrawing);
+
+
+
+		processCurrentDrawnLine();
+
 	}
 }
+
+
+void ZillowClone::processCurrentDrawnLine()
+{
+	for (int i = 0; i < actualRenderHandles.size(); i++)
+	{
+
+	}
+}
+
 
 // VBO with dynamically changing number of points
 // https://www.opengl.org/discussion_boards/showthread.php/178828-VBO-with-dynamically-changing-number-of-points-%21%21
@@ -411,14 +492,13 @@ void ZillowClone::onMouseBtnUp()
 void ZillowClone::addPoint(glm::vec2 worldPoint)
 {
 
-
-	if (curDrawing.size() > 0)
+	
+	utl::debug(">>>>>>>>> Adding New Point, I have this many points", worldPoint);
+	if (curDrawing.getNumPoints() > 0)
 	{
+		curDrawing.processNewPoint(worldPoint);
 
-		glm::vec2 lastPoint = curDrawing[curDrawing.size()-1];
-		curDrawing.push_back(worldPoint);
-		utl::debug(">>>>>>>>> Adding New Point, I have this many points", curDrawing.size());
-		utl::debug("		lastPoint", lastPoint);
+	//	utl::debug("		lastPoint", lastPoint);
 
 
 		WorldObject obj = WorldObject();
@@ -426,8 +506,8 @@ void ZillowClone::addPoint(glm::vec2 worldPoint)
 
 		glm::vec2 diffVector = worldPoint - lastPoint;
 		glm::vec2 centerPoint = lastPoint + glm::vec2(diffVector.x / 2.0, diffVector.y / 2.0);
-		utl::debug("		centerPoint", centerPoint);
-		utl::debug("		worldPoint", worldPoint);
+	//	utl::debug("		centerPoint", centerPoint);
+	//	utl::debug("		worldPoint", worldPoint);
 
 
 		obj.setPosition(glm::vec3(centerPoint.x, centerPoint.y, 0));
@@ -445,13 +525,11 @@ void ZillowClone::addPoint(glm::vec2 worldPoint)
 
 		obj.setScale(scale);
 		pointRenderHandles.push_back(obj);
-
-
 	}
 	else
 	{
-		curDrawing.push_back(worldPoint);
-		utl::debug("In here2");
+		curDrawing.processNewPoint(worldPoint);
+	//	utl::debug("In here2");
 
 		WorldObject obj = WorldObject();
 		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
@@ -460,16 +538,18 @@ void ZillowClone::addPoint(glm::vec2 worldPoint)
 		obj.setScale(1);
 		pointRenderHandles.push_back(obj);
 	}
-	/*
+	
 	{
 		WorldObject obj = WorldObject();
 		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
 		obj.setPosition(glm::vec3(worldPoint.x, worldPoint.y, 0));
 
+		utl::debug("		worldPoint", worldPoint);
+
 		obj.setScale(1);
 		actualRenderHandles.push_back(obj);
 	}
-	*/
+	
 }
 
 
@@ -478,7 +558,7 @@ glm::vec3 ZillowClone::screenToWorldPoint(glm::vec2 screenPoint)
 	glm::vec4 viewPort = glm::vec4(0, 0, utl::SCREEN_WIDTH, utl::SCREEN_HEIGHT);
 	glm::vec3 temp = glm::vec3(screenPoint.x, screenPoint.y, 0);
 
-	glm::vec3 worldPoint = glm::unProject(temp, m_pipeline.getModelViewMatrix(), m_pipeline.getProjectionMatrix(), viewPort);
+	glm::vec3 worldPoint = glm::unProject(temp, glm::inverse(m_pipeline.getModelViewMatrix()), m_pipeline.getProjectionMatrix(), viewPort);
 	return worldPoint;
 }
 
@@ -555,7 +635,7 @@ bool ZillowClone::isNewPoint(glm::vec2 newPoint)
 
 void ZillowClone::onExistDrawingMode()
 {
-	curDrawing.clear();
+	curDrawing.reset();
 	drawingList.clear();
 	pointRenderHandles.clear();
 }
@@ -590,9 +670,15 @@ void ZillowClone::update()
 						break;
 					case SDLK_w:
 						updateZoom(false);
-
 						break;
 
+					case SDLK_e:
+						if (startedCurrentLine)
+						{
+							onMouseBtnHold();
+						}
+
+						break;
 					case SDLK_x:
 						break;
 					case SDLK_z:
@@ -622,16 +708,15 @@ void ZillowClone::update()
 			case SDL_MOUSEBUTTONUP:
 				onMouseBtnUp();
 				break;
-
-
 		}
 	}
 
+	/*
 	if (startedCurrentLine)
 	{
 		onMouseBtnHold();
 	}
-
+	*/
 
 }
 
@@ -699,7 +784,7 @@ void ZillowClone::render()
 	p_renderer->enableShader();
 
 		o_worldAxis.renderGroup(m_pipeline, p_renderer);
-		o_bezierPoint.renderGroup(m_pipeline, p_renderer);
+	//	o_bezierPoint.renderGroup(m_pipeline, p_renderer);
 
 	p_renderer->disableShader();
 	
@@ -708,6 +793,17 @@ void ZillowClone::render()
 	p_renderer = &global.rendererMgr->r_fullColor;
 
 	p_renderer->enableShader();
+
+
+
+		p_renderer->setData(R_FULL_COLOR::u_color, RED);
+		for (int i = 0; i < lineMarkers.size(); i++)
+		{
+			WorldObject obj = lineMarkers[i];
+			obj.renderGroup(m_pipeline, p_renderer);
+		}
+
+
 		p_renderer->setData(R_FULL_COLOR::u_color, BLUE);
 
 		for (int i = 0; i < pointRenderHandles.size(); i++)
@@ -725,6 +821,7 @@ void ZillowClone::render()
 			WorldObject obj = actualRenderHandles[i];
 			obj.renderGroup(m_pipeline, p_renderer);
 		}
+
 
 
 

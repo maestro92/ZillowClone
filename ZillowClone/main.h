@@ -49,6 +49,9 @@ class WorldObject;
 #include <thread>
 #include <mutex>
 
+#include "graph_structs.h"
+#include "drawing.h"
+
 #include <vector>
 
 using namespace std;
@@ -414,7 +417,7 @@ class ZillowClone
 
 		void GetTimeProfilerAverages();
 
-
+		void processCurrentDrawnLine();
 
 		void renderGUI();
 
@@ -425,12 +428,13 @@ class ZillowClone
 		int curLatencyOption;
 
 		glm::vec2 lastPoint;
-		vector<glm::vec2> curDrawing;
-
-		vector< vector<glm::vec2>> drawingList;
+		Drawing curDrawing;
+		vector< Drawing> drawingList;
 
 		vector<WorldObject> pointRenderHandles;
 		vector<WorldObject> actualRenderHandles;
+
+		vector<WorldObject> lineMarkers;
 
 		long long getCurrentTimeMillis();
 };

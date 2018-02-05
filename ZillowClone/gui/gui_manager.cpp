@@ -73,6 +73,7 @@ void GUIManager::init(int screenWidth, int screenHeight)
 	xOffset = utl::SCREEN_WIDTH - width; yOffset = 0;
 	m_drawingModeLabel = new Label("Off", xOffset, yOffset, width, height, BLUE);
 
+
 	int aimWidth = 20;
 	int aimHeight = 20;
 
@@ -96,8 +97,8 @@ void GUIManager::init(int screenWidth, int screenHeight)
 	addGUIComponent(m_ammoBar);
 	addGUIComponent(m_fpsLabel);
 	addGUIComponent(m_drawingModeLabel);
-	addGUIComponent(m_horiAim);
-	addGUIComponent(m_vertAim);
+//	addGUIComponent(m_horiAim);
+//	addGUIComponent(m_vertAim);
 	
 
 
