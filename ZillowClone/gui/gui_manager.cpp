@@ -132,8 +132,10 @@ void GUIManager::init(int screenWidth, int screenHeight)
 	utl::debug("GUI manager initing");
 }
 
-
-
+Pipeline& GUIManager::getPipeline()
+{
+	return m_GUIPipeline;
+}
 /*
 	if (m_healthBarGUI != NULL)
 	{

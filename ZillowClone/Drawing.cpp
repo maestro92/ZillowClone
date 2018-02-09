@@ -117,6 +117,69 @@ void Drawing::processIntersection(IntersectionInfo info)
 }
 
 
+void Drawing::postProcess()
+{
+	cout << "############ In Post Process " << points.size() << " " << vertices.size() << endl;
+	for (int i = 0; i < points.size(); i++)
+	{
+		int index = hasAlreadyProcessedThisPoint(points[i]);
+		cout << "		" << points[i].x << " " << points[i].y << endl;
+		if (index != -1)
+		{
+			Vertex v1 = vertices[index];
+			Vertex v0 = getLastVertex();
+			addEdge(v0.id, v1.id);
+			v0.addNeighbor(v1.id);
+			v1.addNeighbor(v0.id);
+		}
+		else
+		{
+
+			Vertex v1;
+			v1.coord = points[i];
+			int newId = getNewVertexId();
+			addVertex(points[i], newId);
+
+			if (getNumVertices() > 0)
+			{
+				Vertex v0 = getLastVertex();
+				addEdge(v0.id, v1.id);
+				v0.addNeighbor(v1.id);
+				v1.addNeighbor(v0.id);
+			}
+		}
+	}
+
+	cout << " printing vertices " << vertices.size() << endl;
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		vertices[i].print();
+	}
+
+
+	cout <<endl << endl << " printing edges" << edges.size() << endl;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		vertices[i].print();
+	}
+
+}
+
+
+int Drawing::hasAlreadyProcessedThisPoint(glm::vec2 point)
+{
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		if (vertices[i].coord.x == point.x && vertices[i].coord.y == point.y)
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+
 
 
 

@@ -36,12 +36,33 @@ struct Vertex
 	glm::vec2 coord;
 	int id;
 	vector<int> neighbors;
+
+	void addNeighbor(int idIn)
+	{
+		neighbors.push_back(idIn);
+	}
+
+	void print()
+	{
+		cout << "myId is  " << id << " " << coord.x << " " << coord.y << endl;
+		cout << " my neighbors are " << endl;
+		for (int i = 0; i < neighbors.size(); i++)
+		{
+			cout << neighbors[i] << " ";
+		}
+	}
+
 };
 
 struct Edge
 {
 	int id0;
 	int id1;
+
+	void print()
+	{
+		cout << id0 << " " << id1 << endl;
+	}
 };
 
 

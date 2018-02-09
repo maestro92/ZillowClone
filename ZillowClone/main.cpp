@@ -457,24 +457,40 @@ void ZillowClone::onMouseBtnUp()
 
 		}
 		*/
+		
+		curDrawing.postProcess();
+		debugDrawing(curDrawing);
+
 		curDrawing.reset();
 		drawingList.push_back(curDrawing);
 
 
 
-		processCurrentDrawnLine();
 
 	}
 }
 
 
-void ZillowClone::processCurrentDrawnLine()
+void ZillowClone::debugDrawing(Drawing drawing)
 {
-	for (int i = 0; i < actualRenderHandles.size(); i++)
+	for (int i = 0; i < drawing.vertices.size(); i++)
 	{
+		Vertex v = drawing.vertices[i];
 
+		glm::vec2 pos = v.coord;
+		glm::vec3 screenPos = worldToScreen(glm::vec3(pos.x, pos.y, 0));
+		utl::debug("screenPos", screenPos);
+		utl::debug("v.coord;", v.coord);
+		glm::vec3 labelPos = screenToUISpace(glm::vec2(screenPos.x, screenPos.y));
+		utl::debug("		labelPos", labelPos);
+		Label* verticeLabel = new Label(utl::intToStr(v.id), labelPos.x, labelPos.y, 10, 10, COLOR_WHITE);
+		verticeLabel->setFont(20, COLOR_PURPLE);
+		m_gui.addGUIComponent(verticeLabel);
 	}
+
 }
+
+
 
 
 // VBO with dynamically changing number of points
@@ -560,6 +576,30 @@ glm::vec3 ZillowClone::screenToWorldPoint(glm::vec2 screenPoint)
 	return worldPoint;
 }
 
+
+glm::vec3 ZillowClone::screenToUISpace(glm::vec2 screenPoint)
+{
+	glm::vec4 viewPort = glm::vec4(0, 0, utl::SCREEN_WIDTH, utl::SCREEN_HEIGHT);
+	glm::vec3 temp = glm::vec3(screenPoint.x, screenPoint.y, 0);
+
+	glm::vec3 worldPoint = glm::unProject(temp, glm::inverse(m_gui.getPipeline().getModelViewMatrix()), m_gui.getPipeline().getProjectionMatrix(), viewPort);
+	
+	// TODO: NEED TO FIGURE OUT WHY I HAVE TO DO THIS.
+	worldPoint.x = utl::SCREEN_WIDTH - worldPoint.x;
+	worldPoint.y = utl::SCREEN_HEIGHT - worldPoint.y;
+	return worldPoint;
+}
+
+
+glm::vec3 ZillowClone::worldToScreen(glm::vec3 pos)
+{
+	glm::vec4 viewPort = glm::vec4(0, 0, utl::SCREEN_WIDTH, utl::SCREEN_HEIGHT);
+//	glm::vec3 screenPos = glm::project(pos, glm::inverse(m_pipeline.getModelViewMatrix()), m_pipeline.getProjectionMatrix(), viewPort);
+	glm::vec3 screenPos = glm::project(pos, m_pipeline.getModelViewMatrix(), m_pipeline.getProjectionMatrix(), viewPort);
+	return screenPos;
+}
+
+
 void ZillowClone::onMouseBtnDown()
 {
 	int tmpx, tmpy;
@@ -570,6 +610,8 @@ void ZillowClone::onMouseBtnDown()
 	{
 		startedCurrentLine = true;
 		glm::vec2 screenPoint = glm::vec2(tmpx, tmpy);
+		utl::debug("############ ScreenPoint is", screenPoint);
+
 		glm::vec3 worldPoint = screenToWorldPoint(screenPoint);
 		glm::vec2 tempWorldPoint = glm::vec2(worldPoint.x, worldPoint.y);		
 		addPoint(tempWorldPoint);
@@ -595,6 +637,7 @@ void ZillowClone::onMouseBtnHold()
 		glm::vec2 newPoint = glm::vec2(tmpx, tmpy);
 
 		glm::vec2 screenPoint = glm::vec2(tmpx, tmpy);
+		utl::debug("############ ScreenPoint is", screenPoint);
 		glm::vec3 worldPoint = screenToWorldPoint(screenPoint);
 		glm::vec2 tempWorldPoint = glm::vec2(worldPoint.x, worldPoint.y);
 
@@ -794,7 +837,7 @@ void ZillowClone::render()
 
 
 
-		p_renderer->setData(R_FULL_COLOR::u_color, RED);
+		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_RED);
 		for (int i = 0; i < lineMarkers.size(); i++)
 		{
 			WorldObject obj = lineMarkers[i];

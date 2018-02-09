@@ -56,6 +56,8 @@ class Drawing
 		}
 
 
+		void postProcess();
+
 		// https://stackoverflow.com/questions/563198/whats-the-most-efficent-way-to-calculate-where-two-line-segments-intersect/565282#565282
 		// https://www.codeproject.com/Tips/862988/Find-the-Intersection-Point-of-Two-Line-Segments
 		bool LineSegmentLineSegmentIntersection(glm::vec2 p0, glm::vec2 p1, glm::vec2 q0, glm::vec2 q1, glm::vec2& intersectionPoint, bool considerCollinearOverlapAsIntersect);
@@ -107,7 +109,7 @@ class Drawing
 		}
 
 
-		int getNewId()
+		int getNewVertexId()
 		{
 			return vertices.size();
 		}
@@ -136,8 +138,11 @@ class Drawing
 			return points.size();
 		}
 
+		
 
 	private:
+
+		int hasAlreadyProcessedThisPoint(glm::vec2 point);
 
 
 		glm::vec2 getFirstPoint()
@@ -154,6 +159,7 @@ class Drawing
 		// by traversal order
 		vector<glm::vec2> points;
 		vector<Line> lines;
+	//	vector<glm::vec2> processedPoints;
 
 	public:
 		std::function<void(glm::vec2) > onAddIntersection;

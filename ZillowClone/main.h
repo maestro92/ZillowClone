@@ -401,7 +401,9 @@ class ZillowClone
 		bool isFirstPointInCurrentLine;
 		bool startedCurrentLine;
 
+		glm::vec3 screenToUISpace(glm::vec2 screenPoint);
 		glm::vec3 screenToWorldPoint(glm::vec2 screenPoint);
+		glm::vec3 worldToScreen(glm::vec3 pos);
 
 		void addPoint(glm::vec2 worldPoint);
 		int getAverageFPS();
@@ -414,6 +416,7 @@ class ZillowClone
 
 		void render();
 
+		void debugDrawing(Drawing drawing);
 
 		void GetTimeProfilerAverages();
 

@@ -66,14 +66,14 @@ using namespace std;
 #define BLUE        glm::vec3(0.0,0.0,0.5)
 #define GREEN       glm::vec3(0.0,1.0,0.0)
 #define TEAL        glm::vec3(0.0,1.0,1.0)
-#define RED         glm::vec3(1.0,0.0,0.0)
-#define PURPLE      glm::vec3(1.0,0.0,1.0)
+#define COLOR_RED         glm::vec3(1.0,0.0,0.0)
+#define COLOR_PURPLE      glm::vec3(1.0,0.0,1.0)
 #define YELLOW      glm::vec3(1.0,1.0,0.0)
 
 #define DARK_GRAY   glm::vec3(0.25,0.25,0.25)
 #define GRAY        glm::vec3(0.5,0.5,0.5)
 #define LIGHT_GRAY  glm::vec3(0.75, 0.75, 0.75)
-#define WHITE       glm::vec3(1.0,1.0,1.0)
+#define COLOR_WHITE       glm::vec3(1.0,1.0,1.0)
 
 typedef long long UniqueId;
 

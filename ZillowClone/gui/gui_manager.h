@@ -75,6 +75,8 @@ class GUIManager
 
 		void setDrawingModeFlag(bool flag);
 
+		Pipeline& getPipeline();
+
     private:
         int m_GUIComponentsID;
         int m_GUIComponentsFlags;
