@@ -610,7 +610,6 @@ void ZillowClone::onMouseBtnDown()
 	{
 		startedCurrentLine = true;
 		glm::vec2 screenPoint = glm::vec2(tmpx, tmpy);
-		utl::debug("############ ScreenPoint is", screenPoint);
 
 		glm::vec3 worldPoint = screenToWorldPoint(screenPoint);
 		glm::vec2 tempWorldPoint = glm::vec2(worldPoint.x, worldPoint.y);		
@@ -637,7 +636,7 @@ void ZillowClone::onMouseBtnHold()
 		glm::vec2 newPoint = glm::vec2(tmpx, tmpy);
 
 		glm::vec2 screenPoint = glm::vec2(tmpx, tmpy);
-		utl::debug("############ ScreenPoint is", screenPoint);
+
 		glm::vec3 worldPoint = screenToWorldPoint(screenPoint);
 		glm::vec2 tempWorldPoint = glm::vec2(worldPoint.x, worldPoint.y);
 

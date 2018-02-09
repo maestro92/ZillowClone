@@ -44,12 +44,13 @@ struct Vertex
 
 	void print()
 	{
-		cout << "myId is  " << id << " " << coord.x << " " << coord.y << endl;
+		cout << "myId is  " << id << ", Coords: " << coord.x << " " << coord.y << endl;
 		cout << " my neighbors are " << endl;
 		for (int i = 0; i < neighbors.size(); i++)
 		{
 			cout << neighbors[i] << " ";
 		}
+		cout << endl;
 	}
 
 };

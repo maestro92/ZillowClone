@@ -62,7 +62,7 @@ void Drawing::processNewPoint(glm::vec2 point)
 			// then also add the segement 
 			tempLine = Line(lastPoint, info.intersectionPoint);
 			lines.push_back(tempLine);
-
+			points.push_back(info.intersectionPoint);
 			lastPoint = info.intersectionPoint;
 
 			if (onAddIntersection != NULL)
@@ -128,22 +128,25 @@ void Drawing::postProcess()
 		{
 			Vertex v1 = vertices[index];
 			Vertex v0 = getLastVertex();
+			cout <<"2nd place Edge: " << v0.id << " " << v1.id << endl;
 			addEdge(v0.id, v1.id);
 			v0.addNeighbor(v1.id);
 			v1.addNeighbor(v0.id);
 		}
 		else
 		{
-
-			Vertex v1;
-			v1.coord = points[i];
 			int newId = getNewVertexId();
-			addVertex(points[i], newId);
 
-			if (getNumVertices() > 0)
+			addVertex(points[i], newId);
+			if (getNumVertices() > 1)
 			{
-				Vertex v0 = getLastVertex();
+				Vertex v0 = getSecondLastVertex();	
+				Vertex v1 = getLastVertex();
+				
+				cout << "Edge: " << v0.id << " " << v1.id << endl;
 				addEdge(v0.id, v1.id);
+
+
 				v0.addNeighbor(v1.id);
 				v1.addNeighbor(v0.id);
 			}
@@ -160,7 +163,7 @@ void Drawing::postProcess()
 	cout <<endl << endl << " printing edges" << edges.size() << endl;
 	for (int i = 0; i < edges.size(); i++)
 	{
-		vertices[i].print();
+		edges[i].print();
 	}
 
 }

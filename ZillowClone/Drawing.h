@@ -89,14 +89,19 @@ class Drawing
 			return vertices.size();
 		}
 
-		Vertex getFirstVertex()
+		Vertex& getFirstVertex()
 		{
 			return vertices[0];
 		}
 
-		Vertex getLastVertex()
+		Vertex& getLastVertex()
 		{
 			return vertices[vertices.size() - 1];
+		}
+
+		Vertex& getSecondLastVertex()
+		{
+			return vertices[vertices.size() - 2];
 		}
 
 		void reset()
