@@ -26,7 +26,7 @@ struct Line
 
 	void print()
 	{
-		cout << "	" << p0.x << " " << p0.y << ",		 " << p1.x << " " << p1.y << endl;
+		cout << "		" << p0.x << " " << p0.y << ",		 " << p1.x << " " << p1.y << endl;
 	}
 };
 

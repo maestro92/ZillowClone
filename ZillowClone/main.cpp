@@ -458,6 +458,10 @@ void ZillowClone::onMouseBtnUp()
 		}
 		*/
 		
+
+
+		addPoint(curDrawing.getFirstPoint());
+
 		curDrawing.postProcess();
 		debugDrawing(curDrawing);
 
@@ -507,6 +511,7 @@ void ZillowClone::debugDrawing(Drawing drawing)
 
 void ZillowClone::addPoint(glm::vec2 worldPoint)
 {
+	cout << endl << endl << endl << endl;
 	utl::debug(">>>>>>>>> Adding New Point, I have this many points", worldPoint);
 	if (curDrawing.getNumPoints() > 0)
 	{

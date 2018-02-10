@@ -22,7 +22,7 @@ class Drawing
 			// the line that he was intersecting with
 			glm::vec2 point0;
 			glm::vec2 point1;
-			
+		
 			// starting drawn point
 			glm::vec2 startPoint;
 
@@ -84,6 +84,8 @@ class Drawing
 
 		void processNewPoint(glm::vec2 point);
 
+		bool hasAlreadyThisEdge(int id0, int id1);
+
 		int getNumVertices()
 		{
 			return vertices.size();
@@ -143,17 +145,18 @@ class Drawing
 			return points.size();
 		}
 
-		
+		glm::vec2 getFirstPoint()
+		{
+			return points[0];
+		}
+
 
 	private:
 
 		int hasAlreadyProcessedThisPoint(glm::vec2 point);
 
+		int getPointIndex(glm::vec2 point);
 
-		glm::vec2 getFirstPoint()
-		{
-			return points[0];
-		}
 
 		glm::vec2 getLastPoint()
 		{
