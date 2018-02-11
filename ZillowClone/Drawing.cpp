@@ -13,11 +13,12 @@ vector<Drawing::IntersectionInfo> Drawing::getIntersectionList(glm::vec2 p0, glm
 		glm::vec2 lp0 = lines[i].p0;
 		glm::vec2 lp1 = lines[i].p1;
 
+		/*
 		utl::debug("p0", p0);
 		utl::debug("p1", p1);
 		utl::debug("lp0", lp0);
 		utl::debug("lp1", lp1);
-
+		*/
 
 	//	if (p0 != lp0 && p1 != lp1 || p0 != lp1 && p1 != lp0)
 		{
@@ -62,7 +63,7 @@ void Drawing::processNewPoint(glm::vec2 point)
 
 		Line tempLine;
 
-		cout << "	intersections.size() " << intersections.size() << endl;
+	//	cout << "	intersections.size() " << intersections.size() << endl;
 
 		for (int i = 0; i < intersections.size(); i++)
 		{
@@ -95,6 +96,7 @@ void Drawing::processNewPoint(glm::vec2 point)
 		points.push_back(point);
 	}
 
+	/*
 	cout << "	*****" << endl;
 	cout << "	Printing points" << endl;
 	for (int i = 0; i < points.size(); i++)
@@ -108,7 +110,7 @@ void Drawing::processNewPoint(glm::vec2 point)
 	{
 		lines[i].print();
 	}
-
+	*/
 }
 
 void Drawing::processIntersection(IntersectionInfo info)
@@ -218,6 +220,9 @@ here we see if D_next is CW relative to D_curr
 // this is part 4 of the pdf
 void Drawing::findAllMinimalCycleBasis()
 {
+
+	verticesGroups.clear();
+
 	backupVerticesAndEdges();
 
 	glm::vec2 supportLine = glm::vec2(0, -1);
@@ -232,15 +237,14 @@ void Drawing::findAllMinimalCycleBasis()
 	int iterations = 0;
 	while (hasValidStartVertex)
 	{
-		cout << "In here" << endl;
 		bool started = false;
 		Vertex vCurr = startVertex;
 		Vertex vPrev;
 		hasValidStartVertex = false;
 		iterations = 0;
 
-		cout << ">>>>>Starting a cycle " << endl;
-		cout << "		startVertex is " << startVertex.id << endl;
+//		cout << ">>>>>Starting a cycle " << endl;
+//		cout << "		startVertex is " << startVertex.id << endl;
 
 		cycleEdgeList.clear();
 		while (vCurr != startVertex || started == false)
@@ -249,13 +253,13 @@ void Drawing::findAllMinimalCycleBasis()
 			if (started == false)
 			{
 				hasValidStartVertex = getClockWiseMostVertex(startVertex, supportLine, vNext);
-				cout << "		vNext1 is " << vNext.id << endl;
+//				cout << "		vNext1 is " << vNext.id << endl;
 				started = true;
 			}
 			else
 			{
 				hasValidStartVertex = getCounterClockWiseMostVertex(vPrev, vCurr, vNext);
-				cout << "		vNext2 is " << vNext.id << endl;
+//				cout << "		vNext2 is " << vNext.id << endl;
 			}
 
 
@@ -271,18 +275,21 @@ void Drawing::findAllMinimalCycleBasis()
 			Edge edge(vPrev.id, vCurr.id);
 			cycleEdgeList.push_back(edge);
 
+			/*
 			iterations++;
 			if (iterations > 10)
 			{
 				cout << "something is wrong, breaking here" << endl;
 				break;
 			}
+			*/
 		}
 
 		vector<int> tempList;
 //		cout << "Found a cycle " << endl;
 		for (int i = 0; i < cycleEdgeList.size(); i++)
 		{
+			
 			if (i == 0)
 			{
 				tempList.push_back(cycleEdgeList[i].id0);
@@ -291,6 +298,7 @@ void Drawing::findAllMinimalCycleBasis()
 //				cout << cycleEdgeList[i].id0 << " " << cycleEdgeList[i].id1 << " ";
 			}
 			else
+			
 			{
 				tempList.push_back(cycleEdgeList[i].id1);
 //				cout << cycleEdgeList[i].id1 << " ";
@@ -348,16 +356,28 @@ void Drawing::findAllMinimalCycleBasis()
 		}
 
 
-		cout << endl << endl << "printing removed edges" << endl;
+	//	cout << endl << endl << "printing removed edges" << endl;
 		for (int i = 0; i < toBeRemoved.size(); i++)
 		{
-			cout << "Removing Edge " << cycleEdgeList[i].id0 << " " << cycleEdgeList[i].id1 << endl;
+	//		cout << "Removing Edge " << cycleEdgeList[i].id0 << " " << cycleEdgeList[i].id1 << endl;
 			removeEdge(cycleEdgeList[i]);
 		}
 
 		hasValidStartVertex = getCycleStartingVertex(startVertex);
 		k++;
 	}
+
+
+	cout << "Printing VerticesGroups" << endl;
+	for (int i = 0; i < verticesGroups.size(); i++)
+	{
+		for (int j = 0; j < verticesGroups[i].size(); j++)
+		{
+			cout << verticesGroups[i][j] << " ";
+		}
+		cout << endl;
+	}
+
 }
 
 bool Drawing::alreadyInVector(vector<Edge> toBeRemoved, Edge edge)
@@ -554,24 +574,27 @@ bool Drawing::getClockWiseMostVertex(Vertex vCur, glm::vec2 prevDir, Vertex& out
 
 	bool curBestDirIsCWFromPrevDirFlag = isCWFromOrColinear(curBestDir, prevDir);
 	int neighborId2 = vCur.neighbors[0];
+	/*
 	cout << "neighborId " << neighborId2 << endl;
 	cout << "		curBestDirIsCWFromPrevDirFlag " << curBestDirIsCWFromPrevDirFlag << endl;
 	cout << "			curBestDir " << curBestDir.x << " " << curBestDir.y << endl;
 	cout << "			prevDir " << prevDir.x << " " << prevDir.y << endl;
+	*/
 
 	// first found adjacent vertex that is not prev is chosen as V_next
 	for (int i = 1; i < vCur.neighbors.size(); i++)
 	{
 		int neighborId = vCur.neighbors[i];
-		cout << "neighborId " << neighborId << endl;
+//		cout << "neighborId " << neighborId << endl;
 		Vertex vNeighbor = vertices[neighborId];
 		glm::vec2 newDir = vNeighbor.pos - vCur.pos;
 
-
+		/*
 		cout << "		curBestDirIsCWFromPrevDirFlag " << curBestDirIsCWFromPrevDirFlag << endl;
 		cout << "			curBestDir " << curBestDir.x << " " << curBestDir.y << endl;
 		cout << "			newDir " << newDir.x << " " << newDir.y << endl;
 		cout << "			prevDir " << prevDir.x << " " << prevDir.y << endl;
+		*/
 		if (curBestDirIsCWFromPrevDirFlag)
 		{
 			if (isCWFrom(newDir, prevDir) && isCWFrom(newDir, curBestDir))
@@ -620,18 +643,19 @@ bool Drawing::getCounterClockWiseMostVertex(Vertex vPrev, Vertex vCur, Vertex& o
 	bool curBestDirIsCCWFromPrevDirFlag = isCCWFromOrColinear(curBestDir, prevDir);
 
 	int neighborId2 = vCur.neighbors[0];
+/*
 	cout << "neighborId " << neighborId2 << endl;
 	cout << "		curBestDirIsCWFromPrevDirFlag " << curBestDirIsCCWFromPrevDirFlag << endl;
 	cout << "			curBestDir " << curBestDir.x << " " << curBestDir.y << endl;
 	cout << "			prevDir " << prevDir.x << " " << prevDir.y << endl;
-
+	*/
 
 
 	// first found adjacent vertex that is not prev is chosen as V_next
 	for (int i = 1; i < vCur.neighbors.size(); i++)
 	{		
 		int neighborId = vCur.neighbors[i];
-		cout << "neighborId " << neighborId << endl;
+//		cout << "neighborId " << neighborId << endl;
 
 		if (neighborId == vPrev.id)
 		{
@@ -640,12 +664,12 @@ bool Drawing::getCounterClockWiseMostVertex(Vertex vPrev, Vertex vCur, Vertex& o
 		
 		Vertex vNeighbor = vertices[neighborId];
 		glm::vec2 newDir = vNeighbor.pos - vCur.pos;
-
+		/*
 		cout << "		curBestDirIsCWFromPrevDirFlag " << curBestDirIsCCWFromPrevDirFlag << endl;
 		cout << "			curBestDir " << curBestDir.x << " " << curBestDir.y << endl;
 		cout << "			newDir " << newDir.x << " " << newDir.y << endl;
 		cout << "			prevDir " << prevDir.x << " " << prevDir.y << endl;
-
+		*/
 		if (curBestDirIsCCWFromPrevDirFlag)
 		{
 			if (isCCWFrom(newDir, prevDir) && isCCWFrom(newDir, curBestDir))

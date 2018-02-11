@@ -9,6 +9,9 @@
 #include "utility.h"
 #include "utility_debug.h"
 
+#include <iostream>
+#include <fstream>
+
 class Drawing
 {
 	public:
@@ -171,6 +174,24 @@ class Drawing
 		}
 
 
+		void loadTestData()
+		{
+
+		}
+
+		void saveTestData()
+		{
+			ofstream myfile;
+			myfile.open("data.txt");
+
+			for (int i = 0; i < vertices.size(); i++)
+			{
+
+			}
+
+			vector<Vertex> vertices;
+			vector<Edge> edges;
+		}
 
 	private:
 
