@@ -170,7 +170,7 @@ void ZillowClone::init()
 
 	m_pipeline.setMatrixMode(PROJECTION_MATRIX);
 	m_pipeline.loadIdentity();
-//	m_pipeline.perspective(45 * m_zoomFactor, utl::SCREEN_WIDTH / utl::SCREEN_HEIGHT, utl::Z_NEAR, utl::Z_FAR);
+//	m_pipeline.perspective(90, utl::SCREEN_WIDTH / utl::SCREEN_HEIGHT, utl::Z_NEAR, utl::Z_FAR);
 
 	m_zoom = 10;
 	m_range = 50;
@@ -202,8 +202,9 @@ void ZillowClone::initObjects()
 
 
 //	lineMarkers
-
+	
 	for (int i = -50; i <= 50; i += 10)
+//	for (int i = 0; i <= 50; i += 10)
 	{
 		WorldObject obj = WorldObject();
 		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
@@ -215,8 +216,10 @@ void ZillowClone::initObjects()
 	}
 
 
-
+	
 	for (int i = -10; i <= 10; i += 10)
+//	for (int i = 0; i <= 10; i += 10)
+
 	{
 		WorldObject obj = WorldObject();
 		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
@@ -226,7 +229,7 @@ void ZillowClone::initObjects()
 
 		lineMarkers.push_back(obj);
 
-
+		
 		obj = WorldObject();
 		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
 		obj.setPosition(glm::vec3(i, -10, 0));
@@ -234,8 +237,9 @@ void ZillowClone::initObjects()
 		obj.setScale(1);
 
 		lineMarkers.push_back(obj);
+		
 	}
-
+	
 
 
 
@@ -444,22 +448,6 @@ void ZillowClone::onMouseBtnUp()
 	{
 		startedCurrentLine = false;
 		
-/*
-		Vertex firstPoint = curDrawing.getFirstVertex();
-		Vertex lastPoint = curDrawing.getLastVertex();
-	
-		if (firstPoint.id != lastPoint.id)
-		{
-			// curDrawing.addEdge(firstPoint.id, lastPoint.id);
-
-			
-
-
-		}
-		*/
-		
-
-
 		addPoint(curDrawing.getFirstPoint());
 
 		curDrawing.postProcess();
@@ -467,10 +455,6 @@ void ZillowClone::onMouseBtnUp()
 
 		curDrawing.reset();
 		drawingList.push_back(curDrawing);
-
-
-
-
 	}
 }
 
@@ -574,10 +558,12 @@ void ZillowClone::addPoint(glm::vec2 worldPoint)
 
 glm::vec3 ZillowClone::screenToWorldPoint(glm::vec2 screenPoint)
 {
+//	screenPoint.x = utl::SCREEN_WIDTH - screenPoint.x;
+//	screenPoint.y = utl::SCREEN_HEIGHT - screenPoint.y;
 	glm::vec4 viewPort = glm::vec4(0, 0, utl::SCREEN_WIDTH, utl::SCREEN_HEIGHT);
 	glm::vec3 temp = glm::vec3(screenPoint.x, screenPoint.y, 0);
 
-	glm::vec3 worldPoint = glm::unProject(temp, glm::inverse(m_pipeline.getModelViewMatrix()), m_pipeline.getProjectionMatrix(), viewPort);
+	glm::vec3 worldPoint = glm::unProject(temp, (m_pipeline.getModelViewMatrix()), m_pipeline.getProjectionMatrix(), viewPort);
 	return worldPoint;
 }
 
@@ -587,11 +573,11 @@ glm::vec3 ZillowClone::screenToUISpace(glm::vec2 screenPoint)
 	glm::vec4 viewPort = glm::vec4(0, 0, utl::SCREEN_WIDTH, utl::SCREEN_HEIGHT);
 	glm::vec3 temp = glm::vec3(screenPoint.x, screenPoint.y, 0);
 
-	glm::vec3 worldPoint = glm::unProject(temp, glm::inverse(m_gui.getPipeline().getModelViewMatrix()), m_gui.getPipeline().getProjectionMatrix(), viewPort);
+	glm::vec3 worldPoint = glm::unProject(temp, (m_gui.getPipeline().getModelViewMatrix()), m_gui.getPipeline().getProjectionMatrix(), viewPort);
 	
 	// TODO: NEED TO FIGURE OUT WHY I HAVE TO DO THIS.
-	worldPoint.x = utl::SCREEN_WIDTH - worldPoint.x;
-	worldPoint.y = utl::SCREEN_HEIGHT - worldPoint.y;
+//	worldPoint.x = utl::SCREEN_WIDTH - worldPoint.x;
+//	worldPoint.y = utl::SCREEN_HEIGHT - worldPoint.y;
 	return worldPoint;
 }
 
@@ -609,14 +595,17 @@ void ZillowClone::onMouseBtnDown()
 {
 	int tmpx, tmpy;
 	SDL_GetMouseState(&tmpx, &tmpy);
-	tmpx = utl::SCREEN_WIDTH - tmpx;
-
+//	tmpx = utl::SCREEN_WIDTH - tmpx;
+	tmpy = utl::SCREEN_HEIGHT - tmpy;
 	if (inDrawingMode)
 	{
 		startedCurrentLine = true;
 		glm::vec2 screenPoint = glm::vec2(tmpx, tmpy);
+		utl::debug("screenPoint", screenPoint);
 
 		glm::vec3 worldPoint = screenToWorldPoint(screenPoint);
+		utl::debug("world point", worldPoint);
+
 		glm::vec2 tempWorldPoint = glm::vec2(worldPoint.x, worldPoint.y);		
 		addPoint(tempWorldPoint);
 		lastPoint = tempWorldPoint;
@@ -633,7 +622,8 @@ void ZillowClone::onMouseBtnHold()
 {
 	int tmpx, tmpy;
 	SDL_GetMouseState(&tmpx, &tmpy);
-	tmpx = utl::SCREEN_WIDTH - tmpx;
+//	tmpx = utl::SCREEN_WIDTH - tmpx;
+	tmpy = utl::SCREEN_HEIGHT - tmpy;
 //	utl::debug("here is ");
 
 	if (startedCurrentLine)
@@ -813,7 +803,8 @@ void ZillowClone::render()
 
 	m_pipeline.translate(0.0f, 0.0f, 5.0f);
 	
-
+	m_pipeline.setMatrixMode(MODEL_MATRIX);
+//	m_pipeline.loadIdentity();
 
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -827,10 +818,7 @@ void ZillowClone::render()
 	// Rendering wireframes
 	p_renderer = &global.rendererMgr->r_fullVertexColor;
 	p_renderer->enableShader();
-
 		o_worldAxis.renderGroup(m_pipeline, p_renderer);
-	//	o_bezierPoint.renderGroup(m_pipeline, p_renderer);
-
 	p_renderer->disableShader();
 	
 

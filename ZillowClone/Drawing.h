@@ -87,6 +87,8 @@ class Drawing
 		bool hasAlreadyThisEdge(int id0, int id1);
 
 
+		bool getCycleStartingVertex(Vertex& output);
+
 		glm::vec2 perp(glm::vec2 v);
 		float perpDot(glm::vec2 v0, glm::vec2 v1);
 		bool isCCWFromOrColinear(glm::vec2 v0, glm::vec2 v1);
@@ -94,11 +96,15 @@ class Drawing
 		bool isCWFromOrColinear(glm::vec2 v0, glm::vec2 v1);
 		bool isCWFrom(glm::vec2 v0, glm::vec2 v1);
 
-		int getClockWiseMostVertexId(Vertex prev, Vertex cur);
-		int getCounterClockWiseMostVertexId(Vertex prev, Vertex cur);
+		// mainly used for selecting the first starting node
+		bool getClockWiseMostVertex(Vertex vCur, glm::vec2 prevDir, Vertex& output);
+		bool getClockWiseMostVertex(Vertex vPrev, Vertex vCur, Vertex& output);
+		bool getCounterClockWiseMostVertex(Vertex vPrev, Vertex vCur, Vertex& output);
 
 		void createVerticesAndEdges();
 		void findAllMinimalCycleBasis();
+
+
 
 		int getNumVertices()
 		{
@@ -165,7 +171,12 @@ class Drawing
 		}
 
 
+
 	private:
+
+		void removeEdge(Edge edge);
+
+		void backupVerticesAndEdges();
 
 		int hasAlreadyProcessedThisPoint(glm::vec2 point);
 
@@ -188,6 +199,9 @@ class Drawing
 
 		vector<Vertex> vertices;
 		vector<Edge> edges;
+
+		vector<Vertex> backupVertices;
+		vector<Edge> backupEdges;
 };
 
 

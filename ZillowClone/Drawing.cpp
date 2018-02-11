@@ -157,30 +157,23 @@ void Drawing::createVerticesAndEdges()
 		}
 		else
 		{
-			int index0 = hasAlreadyProcessedThisPoint(points[i - 1]);
-			int index1 = hasAlreadyProcessedThisPoint(points[i]);
+			int id0 = hasAlreadyProcessedThisPoint(points[i - 1]);
+			int id1 = hasAlreadyProcessedThisPoint(points[i]);
 
-			Vertex v0 = vertices[index0];
-			Vertex v1;
-
-			if (index1 != -1)
-			{
-				v1 = vertices[index1];
-			}
-			else
+			if (id1 == -1)
 			{
 				int newId = getNewVertexId();
 				addVertex(points[i], newId);
-				v1 = vertices[vertices.size() - 1];
+				id1 = newId;
 			}
 
-			if (hasAlreadyThisEdge(v0.id, v1.id) == false)
+			if (hasAlreadyThisEdge(id0, id1) == false)
 			{
 				// or you can do a check and see if the are any existing edges already
-				addEdge(v0.id, v1.id);
+				addEdge(id0, id1);
 
-				v0.addNeighbor(v1.id);
-				v1.addNeighbor(v0.id);
+				vertices[id0].addNeighbor(id1);
+				vertices[id1].addNeighbor(id0);
 			}
 		}
 	}
@@ -218,15 +211,169 @@ the Perp operator helps to determine if a vector, relative to another vector is 
 the line 
 
 here we see if D_next is CW relative to D_curr
-
-
-
-
 */
 
+
+// https://www.geometrictools.com/Documentation/MinimalCycleBasis.pdf
+// this is part 4 of the pdf
 void Drawing::findAllMinimalCycleBasis()
 {
-	
+	backupVerticesAndEdges();
+
+	glm::vec2 supportLine = glm::vec2(0, -1);
+	Vertex startVertex;
+	bool hasValidVertex = getCycleStartingVertex(startVertex);
+
+
+	// we wish to keep the interior immediately to the left when we traverse through V1
+	vector<Edge> cycleEdgeList;
+
+	int k = 0;
+
+//	while (startVertex.isValid())
+
+	while (k < 1)
+	{
+		cout << "In here" << endl;
+		bool started = false;
+		Vertex vCurr = startVertex;
+		Vertex vPrev;
+		hasValidVertex = false;
+
+		cout << ">>>>>Starting a cycle " << endl;
+		cout << "		startVertex is " << startVertex.id << endl;
+		while (vCurr != startVertex || started == false)
+		{
+			Vertex vNext;
+			if (started == false)
+			{
+				hasValidVertex = getClockWiseMostVertex(startVertex, supportLine, vNext);
+				cout << "		vNext is " << vNext.id << endl;
+				started = true;
+			}
+			else
+			{
+				hasValidVertex = getCounterClockWiseMostVertex(vPrev, vCurr, vNext);
+				cout << "		vNext is " << vNext.id << endl;
+			}
+
+
+			if (hasValidVertex == false)
+			{
+				cout << "Shouldn't Be here!!!!!!!!!!!!!!!";
+				break;
+			}
+
+			vPrev = vCurr;
+			vCurr = vNext;
+
+			Edge edge(vPrev.id, vCurr.id);
+			cycleEdgeList.push_back(edge);
+		}
+
+
+		cout << "Found a cycle " << endl;
+		for (int i = 0; i < cycleEdgeList.size(); i++)
+		{
+			if (i == 0)
+			{
+				cout << cycleEdgeList[i].id0 << " " << cycleEdgeList[i].id1 << " ";
+			}
+			else
+			{
+				cout << cycleEdgeList[i].id1 << " ";
+			}
+		}
+
+
+		vector<Edge> toBeRemoved;
+		// remove removable edges
+		for (int i = 0; i < cycleEdgeList.size(); i++)
+		{
+			Vertex v = vertices[cycleEdgeList[i].id1];
+
+			if (i==0)
+			{
+				toBeRemoved.push_back(cycleEdgeList[0]);
+			}
+			else if (v.neighbors.size() == 2)
+			{
+				toBeRemoved.push_back(cycleEdgeList[i]);
+			}
+			else if (v.neighbors.size() > 2)
+			{
+
+				break;
+			}
+		}
+
+
+		for (int i = 0; i < toBeRemoved.size(); i++)
+		{
+			removeEdge(cycleEdgeList[i]);
+		}
+
+
+		if (hasValidVertex == false)
+		{
+			cout << "Shouldn't Be here!!!!!!!!!!!!!!!";
+			break;
+		}
+
+		hasValidVertex = getCycleStartingVertex(startVertex);
+		k++;
+	}
+
+}
+
+
+void Drawing::removeEdge(Edge edge)
+{
+	vertices[edge.id0].removeNeighbor(edge.id1);
+	vertices[edge.id1].removeNeighbor(edge.id0);
+}
+
+
+void Drawing::backupVerticesAndEdges()
+{
+	// C++ vector does deep copy
+	// https://stackoverflow.com/questions/11348376/std-vector-c-deep-or-shallow-copy
+	backupVertices = vertices;
+	backupEdges = edges;
+}
+
+
+// we select the Vertex that has minimum x-value. If there are two or more vertices attaining the minimum x-value,
+// select V0 to be the vertex that additionally has minimum y-value-
+bool Drawing::getCycleStartingVertex(Vertex& output)
+{
+	if (vertices.size() == 0)
+	{
+		output = Vertex();
+		return false;
+	}
+
+	Vertex startNode = vertices[0];
+	for (int i = 1; i < vertices.size(); i++)
+	{
+		if (vertices[i].pos.x <= startNode.pos.x)
+		{
+			if (vertices[i].pos.x == startNode.pos.x)
+			{
+				if (vertices[i].pos.y < startNode.pos.y)
+				{
+					startNode = vertices[i];
+				}
+			}
+			else
+			{
+				startNode = vertices[i];
+			}
+		}
+	}
+
+	output = startNode;
+	return true;
 }
 
 
@@ -276,17 +423,19 @@ bool Drawing::isCWFromOrColinear(glm::vec2 v0, glm::vec2 v1)
 
 
 // same as the getClockWiseMost Vertex
-int Drawing::getClockWiseMostVertexId(Vertex vPrev, Vertex vCur)
+bool Drawing::getClockWiseMostVertex(Vertex vPrev, Vertex vCur, Vertex& output)
 {
 	if(vCur.neighbors.size() == 0)
 	{
-		return -1;
+		output = Vertex();
+		return false;
 	}
 
 	int firstValidNeighbor = vCur.getFirstNeighborThatIsNot(vPrev.id);
 	if (firstValidNeighbor == -1)
 	{
-		return -1;
+		output = Vertex();
+		return false;
 	}
 
 	glm::vec2 prevDir = vCur.pos - vPrev.pos;
@@ -322,21 +471,72 @@ int Drawing::getClockWiseMostVertexId(Vertex vPrev, Vertex vCur)
 		}
 	}
 
-	return vNext.id;
+	output = vNext;
+	return true;
 }
 
-// same as the getCounterClockWiseMost Vertex
-int Drawing::getCounterClockWiseMostVertexId(Vertex vPrev, Vertex vCur)
+
+
+// same as the getClockWiseMost Vertex
+bool Drawing::getClockWiseMostVertex(Vertex vCur, glm::vec2 prevDir, Vertex& output)
 {
 	if (vCur.neighbors.size() == 0)
 	{
-		return -1;
+		output = Vertex();
+		return false;
+	}
+
+	Vertex vNext = vertices[vCur.neighbors[0]];
+	glm::vec2 curBestDir = vNext.pos - vCur.pos;
+
+	bool curBestDirIsCWFromPrevDirFlag = isCWFromOrColinear(curBestDir, prevDir);
+
+	// first found adjacent vertex that is not prev is chosen as V_next
+	for (int i = 1; i < vCur.neighbors.size(); i++)
+	{
+		int neighborId = vCur.neighbors[i];
+		Vertex vNeighbor = vertices[neighborId];
+		glm::vec2 newDir = vNeighbor.pos - vCur.pos;
+
+		if (curBestDirIsCWFromPrevDirFlag)
+		{
+			if (isCWFrom(newDir, prevDir) && isCWFrom(newDir, curBestDir))
+			{
+				vNext = vNeighbor;
+				curBestDir = newDir;
+				curBestDirIsCWFromPrevDirFlag = isCWFromOrColinear(curBestDir, prevDir);
+			}
+		}
+		else
+		{
+			if (isCWFrom(newDir, prevDir) || isCWFrom(newDir, curBestDir))
+			{
+				vNext = vNeighbor;
+				curBestDir = newDir;
+				curBestDirIsCWFromPrevDirFlag = isCWFromOrColinear(curBestDir, prevDir);
+			}
+		}
+	}
+
+	output = vNext;
+	return true;
+}
+
+
+// same as the getCounterClockWiseMost Vertex
+bool Drawing::getCounterClockWiseMostVertex(Vertex vPrev, Vertex vCur, Vertex& output)
+{
+	if (vCur.neighbors.size() == 0)
+	{
+		output = Vertex();
+		return false;
 	}
 
 	int firstValidNeighbor = vCur.getFirstNeighborThatIsNot(vPrev.id);
 	if (firstValidNeighbor == -1)
 	{
-		return -1;
+		output = Vertex();
+		return false;
 	}
 
 	glm::vec2 prevDir = vCur.pos - vPrev.pos;
@@ -372,7 +572,8 @@ int Drawing::getCounterClockWiseMostVertexId(Vertex vPrev, Vertex vCur)
 		}
 	}
 
-	return vNext.id;
+	output = vNext;
+	return true;
 }
 
 
@@ -390,7 +591,7 @@ int Drawing::hasAlreadyProcessedThisPoint(glm::vec2 point)
 	{
 		if (vertices[i].pos.x == point.x && vertices[i].pos.y == point.y)
 		{
-			return i;
+			return vertices[i].id;
 		}
 	}
 

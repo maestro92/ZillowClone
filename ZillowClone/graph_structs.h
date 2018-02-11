@@ -37,9 +37,26 @@ struct Vertex
 	int id;
 	vector<int> neighbors;
 
+	Vertex()
+	{
+		id = -1;
+	}
+
 	void addNeighbor(int idIn)
 	{
+		cout << "Vertex " << id << " is adding " << idIn << endl;
 		neighbors.push_back(idIn);
+	}
+
+	void removeNeighbor(int idIn)
+	{
+		for (int i = 0; i < neighbors.size(); i++)
+		{
+			if (neighbors[i] == idIn)
+			{
+				neighbors.erase(neighbors.begin() + i);
+			}
+		}
 	}
 
 	int getFirstNeighborThatIsNot(int idIn)
@@ -54,23 +71,47 @@ struct Vertex
 		return -1;
 	}
 
+	bool isValid()
+	{
+		return id != -1;
+	}
+
 	void print()
 	{
 		cout << "myId is  " << id << ", Coords: " << pos.x << " " << pos.y << endl;
-		cout << " my neighbors are " << endl;
+		cout << "	I have " << neighbors.size() << endl;
 		for (int i = 0; i < neighbors.size(); i++)
 		{
 			cout << neighbors[i] << " ";
 		}
-		cout << endl;
+		cout << endl << endl << endl;
 	}
 
+	bool operator==(const Vertex &other) const 
+	{
+		return id == other.id;
+	}
+
+	bool operator!=(const Vertex &other) const
+	{
+		return id != other.id;
+	}
 };
 
 struct Edge
 {
 	int id0;
 	int id1;
+
+	Edge()
+	{}
+
+
+	Edge(int id0In, int id1In)
+	{
+		id0 = id0In;
+		id1 = id1In;
+	}
 
 	void print()
 	{
