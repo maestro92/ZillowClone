@@ -278,7 +278,7 @@ bool Drawing::isCWFromOrColinear(glm::vec2 v0, glm::vec2 v1)
 // same as the getClockWiseMost Vertex
 int Drawing::getClockWiseMostVertexId(Vertex vPrev, Vertex vCur)
 {
-	if(vCur.neighbors.size == 0)
+	if(vCur.neighbors.size() == 0)
 	{
 		return -1;
 	}
@@ -328,7 +328,7 @@ int Drawing::getClockWiseMostVertexId(Vertex vPrev, Vertex vCur)
 // same as the getCounterClockWiseMost Vertex
 int Drawing::getCounterClockWiseMostVertexId(Vertex vPrev, Vertex vCur)
 {
-	if (vCur.neighbors.size == 0)
+	if (vCur.neighbors.size() == 0)
 	{
 		return -1;
 	}

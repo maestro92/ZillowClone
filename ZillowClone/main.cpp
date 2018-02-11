@@ -481,10 +481,10 @@ void ZillowClone::debugDrawing(Drawing drawing)
 	{
 		Vertex v = drawing.vertices[i];
 
-		glm::vec2 pos = v.coord;
+		glm::vec2 pos = v.pos;
 		glm::vec3 screenPos = worldToScreen(glm::vec3(pos.x, pos.y, 0));
 		utl::debug("screenPos", screenPos);
-		utl::debug("v.coord;", v.coord);
+		utl::debug("v.pos;", v.pos);
 		glm::vec3 labelPos = screenToUISpace(glm::vec2(screenPos.x, screenPos.y));
 		utl::debug("		labelPos", labelPos);
 		Label* verticeLabel = new Label(utl::intToStr(v.id), labelPos.x, labelPos.y, 10, 10, COLOR_WHITE);

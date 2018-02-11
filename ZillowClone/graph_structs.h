@@ -46,9 +46,9 @@ struct Vertex
 	{
 		for (int i = 0; i < neighbors.size(); i++)
 		{
-			if (neighbors[i].id != idIn)
+			if (neighbors[i] != idIn)
 			{
-				return neighbors[i].id;
+				return neighbors[i];
 			}
 		}
 		return -1;
