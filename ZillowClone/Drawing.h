@@ -67,7 +67,7 @@ class Drawing
 		{
 			for (int i = 0; i < vertices.size(); i++)
 			{
-				if (vertices[i].coord.x == point.x && vertices[i].coord.y == point.y)
+				if (vertices[i].pos.x == point.x && vertices[i].pos.y == point.y)
 				{
 					return true;
 				}
@@ -85,6 +85,17 @@ class Drawing
 		void processNewPoint(glm::vec2 point);
 
 		bool hasAlreadyThisEdge(int id0, int id1);
+
+
+		glm::vec2 perp(glm::vec2 v);
+		float perpDot(glm::vec2 v0, glm::vec2 v1);
+		bool isCCWFromOrColinear(glm::vec2 v0, glm::vec2 v1);
+		bool isCCWFrom(glm::vec2 v0, glm::vec2 v1);
+		bool isCWFromOrColinear(glm::vec2 v0, glm::vec2 v1);
+		bool isCWFrom(glm::vec2 v0, glm::vec2 v1);
+
+		int getClockWiseMostVertexId(Vertex prev, Vertex cur);
+		int getCounterClockWiseMostVertexId(Vertex prev, Vertex cur);
 
 		void createVerticesAndEdges();
 		void findAllMinimalCycleBasis();
@@ -129,7 +140,7 @@ class Drawing
 		{
 			Vertex v = Vertex();
 			v.id = newId;
-			v.coord = point;
+			v.pos = point;
 			vertices.push_back(v);
 		}
 

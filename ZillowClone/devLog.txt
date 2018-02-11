@@ -54,6 +54,30 @@ I think with some renaming, we can rewrite the following function
 	and when we have a new vertex, depending on CCW or CW, we have different formulas
 
 
+-	in the curBest_vnext_IsCCWFlag case, we have two possible conditions that allows us to update the dnext;
+
+	1.			Dot(dcurr, Perp(dadj))
+
+		this is saying, if our current dnext option is a edge that is CCW of dcurr, but the new candidate (dadj) will be clockwise of dcurr 
+		that we will have a clockwise candidate, which beats our current best CCW option
+
+		if that is the case, then curBest_vnext_IsCCWFlag will be false, and we will only be considering clockwise ones
+
+
+	2.			Dot(dnext, Perp(dadj))
+
+		this should be straight forward, if our new candidate is CCW of dnext, then we have a better candidate
+
+
+-	then in the curBest_vnext_IsCCWFlag is false case,
+
+	we only want to consider ones that are clockwise of dcurr and more clockwise then vnext. Hence the 
+
+				if(Dot(dcurr, Perp(dadj)) < 0 and Dot(dnext, Perp(dadj)) < 0)	
+	condition
+
+
+	code is below
 				Vertex GetClockwiseMost
 				{
 					if(vcurr has no adjacent vertices not equal to vprev)
@@ -88,4 +112,65 @@ I think with some renaming, we can rewrite the following function
 							}
 						}
 					}
+				}
+
+
+
+-	I feel like the API has serious problems, if all we care about is the GettingTheClockWiseMost edge, why the fxxk is there that many CounterClockWise
+logic in here. So I wanted the API to only have Clockwise logic
+
+the newly revised version is below:
+
+
+-	as you can see. all the counterClockwise comparisons are gone. leaving only the clockwise comparisons
+
+				// same as the getClockWiseMost Vertex
+				int Drawing::getClockWiseMostVertexId(Vertex vPrev, Vertex vCur)
+				{
+					if(vCur.neighbors.size == 0)
+					{
+						return -1;
+					}
+
+					int firstValidNeighbor = vCur.getFirstNeighborThatIsNot(vPrev.id);
+					if (firstValidNeighbor == -1)
+					{
+						return -1;
+					}
+
+					glm::vec2 prevDir = vCur.pos - vPrev.pos;
+					Vertex vNext = vertices[firstValidNeighbor];
+					glm::vec2 curBestDir = vNext.pos - vCur.pos;
+
+					bool curBestDirIsClockWiseOfPrevDirFlag = isColinearOrClockWiseFrom(curBestDir, prevDir);
+
+					// first found adjacent vertex that is not prev is chosen as V_next
+					for (int i = 1; i < vCur.neighbors.size(); i++)
+					{
+						int neighborId = vCur.neighbors[i];
+						Vertex vNeighbor = vertices[neighborId];
+						glm::vec2 newDir = vNeighbor.pos - vCur.pos;
+
+						if (curBestDirIsClockWiseOfPrevDirFlag)
+						{
+							if (isClockWiseFrom(newDir, prevDir) && isClockWiseFrom(newDir, curBestDir))
+							{
+								vNext = vNeighbor;
+								curBestDir = newDir;
+								curBestDirIsClockWiseOfPrevDirFlag = isColinearOrClockWiseFrom(curBestDir, prevDir);
+							}
+						}
+						else
+						{
+							if (isClockWiseFrom(newDir, prevDir) || isClockWiseFrom(newDir, curBestDir))
+							{
+								vNext = vNeighbor;
+								curBestDir = newDir;
+								curBestDirIsClockWiseOfPrevDirFlag = isColinearOrClockWiseFrom(curBestDir, prevDir);
+							}
+						}
+					}
+
+					return vNext.id;
+
 				}

@@ -212,6 +212,15 @@ https://stackoverflow.com/questions/1119627/how-to-test-if-a-point-is-inside-of-
 GPU Gems Chapter II.5, it does a very good job explaining how the perp-dot operator works.
 http://cas.xav.free.fr/Graphics%20Gems%204%20-%20Paul%20S.%20Heckbert.pdf
 
+The first thing we want to know is if the vector to the adjacent vertex, are CW or CCW
+the Perp operator helps to determine if a vector, relative to another vector is CW or CCW
+
+the line 
+
+here we see if D_next is CW relative to D_curr
+
+
+
 
 */
 
@@ -220,25 +229,151 @@ void Drawing::findAllMinimalCycleBasis()
 	
 }
 
-// same as the getClockWiseMostEdge
-void Drawing::getFirstCCWEdge(Vertex prev, Vertex cur)
+
+
+// http://cas.xav.free.fr/Graphics%20Gems%204%20-%20Paul%20S.%20Heckbert.pdf
+// page 140
+// the picture I always refer to is Figure2 of that article
+// this gives perp(v1) * (v0)  
+float Drawing::perpDot(glm::vec2 v0, glm::vec2 v1)
 {
-	glm::vec2 dirPrev = cur.coord - prev.coord;
-
-	// first found adjacent vertex that is not prev is chosen as V_next
-
-	if (convex)
-	{
-
-	}
-	else
-	{
-
-	}
-
+	v0 = perp(v0);
+	return glm::dot(v0, v1);
 }
 
-void Drawing::getFirstCWEdge()
+glm::vec2 Drawing::perp(glm::vec2 v)
+{
+	float temp = v.x;
+	v.x = v.y;
+	v.y = -temp;
+	return v;
+}
+
+
+// returns whether v0 is CCW from v1;
+bool Drawing::isCCWFrom(glm::vec2 v0, glm::vec2 v1)
+{
+	return perpDot(v1, v0) > 0;
+}
+
+// returns whether v0 is CCW or Colinear from v1;
+bool Drawing::isCCWFromOrColinear(glm::vec2 v0, glm::vec2 v1)
+{
+	return perpDot(v1, v0) >= 0;
+}
+
+// returns whether v0 is CW of v1;
+bool Drawing::isCWFrom(glm::vec2 v0, glm::vec2 v1)
+{
+	return perpDot(v1, v0) < 0;
+}
+
+// returns whether v0 is CW of v1;
+bool Drawing::isCWFromOrColinear(glm::vec2 v0, glm::vec2 v1)
+{
+	return perpDot(v1, v0) <= 0;
+}
+
+
+// same as the getClockWiseMost Vertex
+int Drawing::getClockWiseMostVertexId(Vertex vPrev, Vertex vCur)
+{
+	if(vCur.neighbors.size == 0)
+	{
+		return -1;
+	}
+
+	int firstValidNeighbor = vCur.getFirstNeighborThatIsNot(vPrev.id);
+	if (firstValidNeighbor == -1)
+	{
+		return -1;
+	}
+
+	glm::vec2 prevDir = vCur.pos - vPrev.pos;
+	Vertex vNext = vertices[firstValidNeighbor];
+	glm::vec2 curBestDir = vNext.pos - vCur.pos;
+
+	bool curBestDirIsCWFromPrevDirFlag = isCWFromOrColinear(curBestDir, prevDir);
+
+	// first found adjacent vertex that is not prev is chosen as V_next
+	for (int i = 1; i < vCur.neighbors.size(); i++)
+	{
+		int neighborId = vCur.neighbors[i];
+		Vertex vNeighbor = vertices[neighborId];
+		glm::vec2 newDir = vNeighbor.pos - vCur.pos;
+
+		if (curBestDirIsCWFromPrevDirFlag)
+		{
+			if (isCWFrom(newDir, prevDir) && isCWFrom(newDir, curBestDir))
+			{
+				vNext = vNeighbor;
+				curBestDir = newDir;
+				curBestDirIsCWFromPrevDirFlag = isCWFromOrColinear(curBestDir, prevDir);
+			}
+		}
+		else
+		{
+			if (isCWFrom(newDir, prevDir) || isCWFrom(newDir, curBestDir))
+			{
+				vNext = vNeighbor;
+				curBestDir = newDir;
+				curBestDirIsCWFromPrevDirFlag = isCWFromOrColinear(curBestDir, prevDir);
+			}
+		}
+	}
+
+	return vNext.id;
+}
+
+// same as the getCounterClockWiseMost Vertex
+int Drawing::getCounterClockWiseMostVertexId(Vertex vPrev, Vertex vCur)
+{
+	if (vCur.neighbors.size == 0)
+	{
+		return -1;
+	}
+
+	int firstValidNeighbor = vCur.getFirstNeighborThatIsNot(vPrev.id);
+	if (firstValidNeighbor == -1)
+	{
+		return -1;
+	}
+
+	glm::vec2 prevDir = vCur.pos - vPrev.pos;
+	Vertex vNext = vertices[firstValidNeighbor];
+	glm::vec2 curBestDir = vNext.pos - vCur.pos;
+
+	bool curBestDirIsCCWFromPrevDirFlag = isCCWFromOrColinear(curBestDir, prevDir);
+
+	// first found adjacent vertex that is not prev is chosen as V_next
+	for (int i = 1; i < vCur.neighbors.size(); i++)
+	{
+		int neighborId = vCur.neighbors[i];
+		Vertex vNeighbor = vertices[neighborId];
+		glm::vec2 newDir = vNeighbor.pos - vCur.pos;
+
+		if (curBestDirIsCCWFromPrevDirFlag)
+		{
+			if (isCCWFrom(newDir, prevDir) || isCCWFrom(newDir, curBestDir))
+			{
+				vNext = vNeighbor;
+				curBestDir = newDir;
+				curBestDirIsCCWFromPrevDirFlag = isCCWFromOrColinear(curBestDir, prevDir);
+			}
+		}
+		else
+		{
+			if (isCCWFrom(newDir, prevDir) && isCCWFrom(newDir, curBestDir))
+			{
+				vNext = vNeighbor;
+				curBestDir = newDir;
+				curBestDirIsCCWFromPrevDirFlag = isCCWFromOrColinear(curBestDir, prevDir);
+			}
+		}
+	}
+
+	return vNext.id;
+}
 
 
 
@@ -253,7 +388,7 @@ int Drawing::hasAlreadyProcessedThisPoint(glm::vec2 point)
 {
 	for (int i = 0; i < vertices.size(); i++)
 	{
-		if (vertices[i].coord.x == point.x && vertices[i].coord.y == point.y)
+		if (vertices[i].pos.x == point.x && vertices[i].pos.y == point.y)
 		{
 			return i;
 		}

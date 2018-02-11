@@ -33,7 +33,7 @@ struct Line
 
 struct Vertex
 {
-	glm::vec2 coord;
+	glm::vec2 pos;
 	int id;
 	vector<int> neighbors;
 
@@ -42,9 +42,21 @@ struct Vertex
 		neighbors.push_back(idIn);
 	}
 
+	int getFirstNeighborThatIsNot(int idIn)
+	{
+		for (int i = 0; i < neighbors.size(); i++)
+		{
+			if (neighbors[i].id != idIn)
+			{
+				return neighbors[i].id;
+			}
+		}
+		return -1;
+	}
+
 	void print()
 	{
-		cout << "myId is  " << id << ", Coords: " << coord.x << " " << coord.y << endl;
+		cout << "myId is  " << id << ", Coords: " << pos.x << " " << pos.y << endl;
 		cout << " my neighbors are " << endl;
 		for (int i = 0; i < neighbors.size(); i++)
 		{
