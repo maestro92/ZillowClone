@@ -131,8 +131,11 @@ void Drawing::processIntersection(IntersectionInfo info)
 
 }
 
+// implement the algorithm in this post
+// https://stackoverflow.com/questions/16782898/algorithm-for-finding-minimal-cycles-in-a-graph
 
-void Drawing::postProcess()
+
+void Drawing::createVerticesAndEdges()
 {
 	cout << "############ In Post Process " << points.size() << " " << endl;
 
@@ -189,12 +192,60 @@ void Drawing::postProcess()
 	}
 
 
-	cout <<endl << endl << " printing edges" << edges.size() << endl;
+	cout << endl << endl << " printing edges" << edges.size() << endl;
 	for (int i = 0; i < edges.size(); i++)
 	{
 		edges[i].print();
 	}
 
+}
+
+// 4.1, he had a definition for convex
+// D · D0(perpendicular sign) < 0 and D · D1(perpendicular sign) > 0
+// if you think about it in terms of 3D, try to do a right hand rule that setup and you'll see why this definition works to 
+// find out if something is convex or concave
+
+
+/*
+https://stackoverflow.com/questions/1119627/how-to-test-if-a-point-is-inside-of-a-convex-polygon-in-2d-integer-coordinates
+
+GPU Gems Chapter II.5, it does a very good job explaining how the perp-dot operator works.
+http://cas.xav.free.fr/Graphics%20Gems%204%20-%20Paul%20S.%20Heckbert.pdf
+
+
+*/
+
+void Drawing::findAllMinimalCycleBasis()
+{
+	
+}
+
+// same as the getClockWiseMostEdge
+void Drawing::getFirstCCWEdge(Vertex prev, Vertex cur)
+{
+	glm::vec2 dirPrev = cur.coord - prev.coord;
+
+	// first found adjacent vertex that is not prev is chosen as V_next
+
+	if (convex)
+	{
+
+	}
+	else
+	{
+
+	}
+
+}
+
+void Drawing::getFirstCWEdge()
+
+
+
+void Drawing::postProcess()
+{
+	createVerticesAndEdges();
+	findAllMinimalCycleBasis();
 }
 
 

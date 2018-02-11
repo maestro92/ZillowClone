@@ -86,6 +86,9 @@ class Drawing
 
 		bool hasAlreadyThisEdge(int id0, int id1);
 
+		void createVerticesAndEdges();
+		void findAllMinimalCycleBasis();
+
 		int getNumVertices()
 		{
 			return vertices.size();
