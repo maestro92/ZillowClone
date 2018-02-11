@@ -174,7 +174,9 @@ class Drawing
 
 	private:
 
+		bool alreadyInToBeRemoved(Edge edge);
 		void removeEdge(Edge edge);
+		bool alreadyInVector(vector<Edge> toBeRemoved, Edge edge);
 
 		void backupVerticesAndEdges();
 
@@ -192,10 +194,14 @@ class Drawing
 		// by traversal order
 		vector<glm::vec2> points;
 		vector<Line> lines;
-	//	vector<glm::vec2> processedPoints;
+
+
 
 	public:
 		std::function<void(glm::vec2) > onAddIntersection;
+
+		// to see which groups of vertices are grouped together
+		vector< vector<int>> verticesGroups;
 
 		vector<Vertex> vertices;
 		vector<Edge> edges;

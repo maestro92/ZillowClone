@@ -117,6 +117,11 @@ struct Edge
 	{
 		cout << id0 << " " << id1 << endl;
 	}
+
+	bool operator==(const Edge &other) const
+	{
+		return id0 == other.id0 && id1 == other.id1 || id0 == other.id1 && id1 == other.id0;
+	}
 };
 
 
