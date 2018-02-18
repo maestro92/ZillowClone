@@ -349,14 +349,10 @@ void Drawing::findAllMinimalCycleBasis()
 			{
 				tempList.push_back(cycleEdgeList[i].id0);
 				tempList.push_back(cycleEdgeList[i].id1);
-
-//				cout << cycleEdgeList[i].id0 << " " << cycleEdgeList[i].id1 << " ";
 			}
-			else
-			
+			else			
 			{
 				tempList.push_back(cycleEdgeList[i].id1);
-//				cout << cycleEdgeList[i].id1 << " ";
 			}
 		}
 
@@ -369,6 +365,7 @@ void Drawing::findAllMinimalCycleBasis()
 		for (int i = 0; i < cycleEdgeList.size(); i++)
 		{
 			Vertex v = vertices[cycleEdgeList[i].id1];
+			Vertex v1 = vertices[cycleEdgeList[i].id0];
 
 			if (i==0)
 			{
@@ -385,6 +382,7 @@ void Drawing::findAllMinimalCycleBasis()
 			}
 		}
 
+
 		// then to CW traversal to remove edges
 		for (int i = cycleEdgeList.size() - 1; i >= 0; i--)
 		{
@@ -395,32 +393,27 @@ void Drawing::findAllMinimalCycleBasis()
 				continue;
 			}
 
-			if (i == cycleEdgeList.size() - 1)
-			{
-				toBeRemoved.push_back(cycleEdgeList[0]);
-			}
-			else if (v.neighbors.size() == 2)
-			{
-				toBeRemoved.push_back(cycleEdgeList[i]);
-			}
-			else if (v.neighbors.size() > 2)
+			if (v.neighbors.size() > 2)
 			{
 				toBeRemoved.push_back(cycleEdgeList[i]);
 				break;
 			}
+			
+			else if (v.neighbors.size() == 2)
+			{
+				toBeRemoved.push_back(cycleEdgeList[i]);
+			}
 		}
 
-
-	//	cout << endl << endl << "printing removed edges" << endl;
 		for (int i = 0; i < toBeRemoved.size(); i++)
 		{
-	//		cout << "Removing Edge " << cycleEdgeList[i].id0 << " " << cycleEdgeList[i].id1 << endl;
-			removeEdge(cycleEdgeList[i]);
+			removeEdge(toBeRemoved[i]);
 		}
 
 		hasValidStartVertex = getCycleStartingVertex(startVertex);
 		k++;
 	}
+
 
 
 	cout << "Printing VerticesGroups" << endl;
@@ -589,6 +582,7 @@ bool Drawing::getCycleStartingVertex(Vertex& output)
 	Vertex startNode;
 	for (int i = 0; i < vertices.size(); i++)
 	{
+		cout << vertices[i].id << ", neighbor size is " << vertices[i].neighbors.size() << endl;
 		if (vertices[i].neighbors.size() > 0)
 		{
 			if (!startNode.isValid())
