@@ -354,6 +354,7 @@ class ZillowClone
 
 
 		GUIManager m_gui;
+		bool loadData;
 
 		float m_zoom;
 		float m_range;
@@ -387,6 +388,9 @@ class ZillowClone
 
 		
 		int endWithError(char* msg, int error = 0);
+
+
+		void createRenderHandleForLoadedTestData(Drawing drawingIn);
 
 		void serverHandleDeviceEvents();
 		void clientHandleDeviceEvents();
@@ -424,7 +428,7 @@ class ZillowClone
 
 		void renderGUI();
 
-
+		
 
 		vector<int> latencyOptions;		// round trip
 		int latency;					// rount trip latency in milliseconds

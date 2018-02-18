@@ -87,6 +87,19 @@ glm::vec3 utl::findVec3(const mObject& obj, const string& name)
 
 
 
+glm::vec2 utl::findVec2(const mObject& obj, const string& name)
+{
+	const mObject vec3Obj = findValue(obj, name).get_obj();
+
+	float x = findValue(vec3Obj, "x").get_real();
+	float y = findValue(vec3Obj, "y").get_real();
+
+	glm::vec2 vec2Value(x, y);
+
+	return vec2Value;
+}
+
+
 
 
 

@@ -3,6 +3,7 @@
 
 #include "pipeline.h"
 #include "utility.h"
+#include "utility_math.h"
 #include "Rect.h"
 #include "Slider.h"
 #include "list_box.h"

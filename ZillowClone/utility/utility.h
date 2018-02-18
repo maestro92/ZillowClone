@@ -4,7 +4,7 @@
 #include <cstdlib>
 
 #include <iostream>
-#include <sstream> //You'll need to include this header to use 'std::stringstream'.
+
 #include <string>
 #include <algorithm>
 
@@ -25,7 +25,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <stdio.h>
-#include <iomanip>
+
 
 #include <unordered_set>
 
@@ -189,26 +189,11 @@ namespace utl
 	template<typename T>
 	vector<T> reserveVector(int size);
 
-	/// utl_Math.cpp
-	string intToStr(int value);
-	string floatToStr(float value);
-	int randInt(int min = 0, int max = 100);
-	float randFloat(float min = 0, float max = 1);
-	template<class T>
-	inline T sqr(const T &x)
-	{
-		return x*x;
-	}
 
-	float barycentricInterpolation(glm::vec3 v1, glm::vec3 v2, glm::vec3 v3, glm::vec2 coord);
-
-	glm::vec3 interpolateEntityPosition(glm::vec3 pos0, glm::vec3 pos1, float interpFactor);
-	glm::vec3 interpolateEntityAngles(glm::vec3 pos0, glm::vec3 pos1, float interpFactor);
-	float interpolateAngle(float f0, float f1, float interpFactor);
 
 	uint32_t createUniqueObjectID();
 
-	bool chance(float percent);
+
 
 	void write(RakNet::BitStream& bs, std::string& s);
 	void read(RakNet::BitStream& bs, std::string& s);

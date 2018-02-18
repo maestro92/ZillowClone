@@ -1,4 +1,4 @@
-#ifndef  DRAWING_H_
+#ifndef DRAWING_H_
 #define DRAWING_H_
 
 #include "graph_structs.h"
@@ -7,8 +7,9 @@
 #include <vector>       // std::vector
 #include <functional>
 #include "utility.h"
+#include "utility_math.h"
+#include "utility_json.h"
 #include "utility_debug.h"
-
 #include <iostream>
 #include <fstream>
 
@@ -174,24 +175,14 @@ class Drawing
 		}
 
 
-		void loadTestData()
-		{
+		void loadTestData(char* file);
+		void saveTestData();
 
-		}
+		void verifyLoadTestDataFunction(vector<Vertex> oriVertices, vector<Edge> oriEdges,
+										vector<Vertex> newVertices, vector<Edge> newEdges);
 
-		void saveTestData()
-		{
-			ofstream myfile;
-			myfile.open("data.txt");
-
-			for (int i = 0; i < vertices.size(); i++)
-			{
-
-			}
-
-			vector<Vertex> vertices;
-			vector<Edge> edges;
-		}
+		Object serializeVertex(Vertex v);
+		Vertex deserializeVertex(const mObject& obj);
 
 	private:
 

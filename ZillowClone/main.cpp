@@ -186,6 +186,20 @@ void ZillowClone::init()
 	glDisable(GL_BLEND);
 
 	SDL_WM_SetCaption("ZillowClone", NULL);
+
+
+	loadData = false;
+
+	if (loadData)
+	{
+		curDrawing.loadTestData("data.txt");
+		createRenderHandleForLoadedTestData(curDrawing);
+		debugDrawing(curDrawing);
+	}
+	else
+	{
+
+	}
 }
 
 GLuint tempTexture;
@@ -245,7 +259,6 @@ void ZillowClone::initObjects()
 
 	curDrawing.onAddIntersection = [this](glm::vec2 point)
 	{
-		utl::debug("inside here in onAddIntersection");
 		WorldObject obj = WorldObject();
 		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
 		obj.setPosition(glm::vec3(point.x, point.y, 0));
@@ -458,6 +471,69 @@ void ZillowClone::onMouseBtnUp()
 	}
 }
 
+void ZillowClone::createRenderHandleForLoadedTestData(Drawing drawingIn)
+{
+	pointRenderHandles.clear();
+	actualRenderHandles.clear();
+
+	glm::vec2 lastPoint;
+	glm::vec2 worldPoint;
+
+	vector<Vertex> temp = drawingIn.vertices;
+	temp.push_back(temp[0]);
+
+	for (int i = 0; i < temp.size(); i++)
+	{
+		if (i == 0)
+		{
+			worldPoint = temp[i].pos;
+			curDrawing.processNewPoint(worldPoint);
+
+			WorldObject obj = WorldObject();
+			obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
+			obj.setPosition(glm::vec3(worldPoint.x, worldPoint.y, 0));
+
+			obj.setScale(1);
+			pointRenderHandles.push_back(obj);
+		}
+		else
+		{
+			lastPoint = temp[i - 1].pos;
+			worldPoint = temp[i].pos;
+
+			WorldObject obj = WorldObject();
+			obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
+
+			glm::vec2 diffVector = worldPoint - lastPoint;
+			glm::vec2 centerPoint = lastPoint + glm::vec2(diffVector.x / 2.0, diffVector.y / 2.0);
+
+			obj.setPosition(glm::vec3(centerPoint.x, centerPoint.y, 0));
+
+			float angle = atan2(diffVector.y, diffVector.x) * 180 / PI;
+
+			float length = glm::distance(lastPoint, worldPoint);
+
+
+			glm::vec3 scale(length, 1, 1);
+
+			//	utl::debug("		scale", scale);
+
+			obj.setRotation(glm::rotate(angle, 0.0f, 0.0f, 1.0f));
+
+			obj.setScale(scale);
+			pointRenderHandles.push_back(obj);
+		}
+
+		WorldObject obj = WorldObject();
+		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
+		obj.setPosition(glm::vec3(worldPoint.x, worldPoint.y, 0));
+
+		//	utl::debug("		worldPoint", worldPoint);
+
+		obj.setScale(1);
+		actualRenderHandles.push_back(obj);
+	}
+}
 
 void ZillowClone::debugDrawing(Drawing drawing)
 {
@@ -496,34 +572,23 @@ void ZillowClone::debugDrawing(Drawing drawing)
 void ZillowClone::addPoint(glm::vec2 worldPoint)
 {
 	cout << endl << endl << endl << endl;
-	utl::debug(">>>>>>>>> Adding New Point, I have this many points", worldPoint);
+
 	if (curDrawing.getNumPoints() > 0)
 	{
 		curDrawing.processNewPoint(worldPoint);
-
-	//	utl::debug("		lastPoint", lastPoint);
-
 
 		WorldObject obj = WorldObject();
 		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
 
 		glm::vec2 diffVector = worldPoint - lastPoint;
 		glm::vec2 centerPoint = lastPoint + glm::vec2(diffVector.x / 2.0, diffVector.y / 2.0);
-	//	utl::debug("		centerPoint", centerPoint);
-	//	utl::debug("		worldPoint", worldPoint);
-
 
 		obj.setPosition(glm::vec3(centerPoint.x, centerPoint.y, 0));
 
 		float angle = atan2(diffVector.y, diffVector.x) * 180 / PI;
-
 		float length = glm::distance(lastPoint, worldPoint);
 
-
 		glm::vec3 scale(length, 1,1);
-
-	//	utl::debug("		scale", scale);
-
 		obj.setRotation(glm::rotate(angle, 0.0f , 0.0f, 1.0f));
 
 		obj.setScale(scale);
@@ -532,7 +597,6 @@ void ZillowClone::addPoint(glm::vec2 worldPoint)
 	else
 	{
 		curDrawing.processNewPoint(worldPoint);
-	//	utl::debug("In here2");
 
 		WorldObject obj = WorldObject();
 		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
@@ -546,8 +610,6 @@ void ZillowClone::addPoint(glm::vec2 worldPoint)
 		WorldObject obj = WorldObject();
 		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
 		obj.setPosition(glm::vec3(worldPoint.x, worldPoint.y, 0));
-
-	//	utl::debug("		worldPoint", worldPoint);
 
 		obj.setScale(1);
 		actualRenderHandles.push_back(obj);
@@ -558,8 +620,6 @@ void ZillowClone::addPoint(glm::vec2 worldPoint)
 
 glm::vec3 ZillowClone::screenToWorldPoint(glm::vec2 screenPoint)
 {
-//	screenPoint.x = utl::SCREEN_WIDTH - screenPoint.x;
-//	screenPoint.y = utl::SCREEN_HEIGHT - screenPoint.y;
 	glm::vec4 viewPort = glm::vec4(0, 0, utl::SCREEN_WIDTH, utl::SCREEN_HEIGHT);
 	glm::vec3 temp = glm::vec3(screenPoint.x, screenPoint.y, 0);
 
@@ -575,9 +635,6 @@ glm::vec3 ZillowClone::screenToUISpace(glm::vec2 screenPoint)
 
 	glm::vec3 worldPoint = glm::unProject(temp, (m_gui.getPipeline().getModelViewMatrix()), m_gui.getPipeline().getProjectionMatrix(), viewPort);
 	
-	// TODO: NEED TO FIGURE OUT WHY I HAVE TO DO THIS.
-//	worldPoint.x = utl::SCREEN_WIDTH - worldPoint.x;
-//	worldPoint.y = utl::SCREEN_HEIGHT - worldPoint.y;
 	return worldPoint;
 }
 

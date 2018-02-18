@@ -25,6 +25,7 @@ namespace utl
 	const mValue& findValue(const mObject& obj, const std::string& name);
 
 	glm::vec3 findVec3(const mObject& obj, const std::string& name);
+	glm::vec2 findVec2(const mObject& obj, const std::string& name);
 }
 
 

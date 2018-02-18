@@ -1,6 +1,6 @@
-#include "utility.h"
+#include "utility_math.h"
 
-
+// const float utl::MATH_EPSILON = 1e-5;
 string utl::intToStr(int value)
 {
 	stringstream ss;
@@ -13,6 +13,13 @@ string utl::floatToStr(float value)
     ostringstream buff;
     buff << std::setprecision(4) << value;
     return buff.str();
+}
+
+string utl::vec2ToStr(glm::vec2 value)
+{
+	ostringstream buff;
+	buff << std::setprecision(4) << value.x << " " << std::setprecision(4) << value.y;
+	return buff.str();
 }
 
 
@@ -48,6 +55,13 @@ bool utl::chance(float percent)
 glm::vec3 utl::interpolateEntityPosition(glm::vec3 pos0, glm::vec3 pos1, float interpFactor)
 {
 	return pos0 + (pos1 - pos0) * interpFactor;
+}
+
+
+bool utl::equals(glm::vec2 a, glm::vec2 b)
+{
+	float MATH_EPSILON = 1e-5;
+	return (abs(a.x - b.x) < MATH_EPSILON && abs(a.y - b.y) < MATH_EPSILON);
 }
 
 

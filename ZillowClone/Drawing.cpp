@@ -6,6 +6,11 @@ float Drawing::EPSILON = 1e-5;
 vector<Drawing::IntersectionInfo> Drawing::getIntersectionList(glm::vec2 p0, glm::vec2 p1)
 {
 	vector<IntersectionInfo> intersectionEdges;
+
+	if (p1 == points[0])
+	{
+		cout << "Intersections " << endl;
+	}
 	for (int i = 0; i < lines.size(); i++)
 	{
 		glm::vec2 intersectionPoint;
@@ -20,17 +25,53 @@ vector<Drawing::IntersectionInfo> Drawing::getIntersectionList(glm::vec2 p0, glm
 		utl::debug("lp1", lp1);
 		*/
 
+
+
 	//	if (p0 != lp0 && p1 != lp1 || p0 != lp1 && p1 != lp0)
 		{
-			if (LineSegmentLineSegmentIntersection(p0, p1, lp0, lp1, intersectionPoint, false))
+			bool flag = LineSegmentLineSegmentIntersection(p0, p1, lp0, lp1, intersectionPoint, false);
+
+			// if (LineSegmentLineSegmentIntersection(p0, p1, lp0, lp1, intersectionPoint, false))
+			if (flag)
 			{
 				// we don't consider intersecting the start or end point of where u came from
-				if (intersectionPoint != p0 && intersectionPoint != p1)
+				if (!utl::equals(intersectionPoint, p0) && !utl::equals(intersectionPoint, p1))
+	//			if (intersectionPoint != p0 && intersectionPoint != p1)
 				{
+					if (p1 == points[0])
+					{
+						utl::debug("	i", i);
+						utl::debug("	>>>>>>>> adding intersectionPoint", intersectionPoint);
+					}
+
 					IntersectionInfo intersectionInfo(intersectionPoint, lp0, lp1, p0);
 
 					intersectionEdges.push_back(intersectionInfo);
 				}
+				else
+				{
+					if (p1 == points[0])
+					{
+						utl::debug("	i", i);
+						utl::debug("	not intersectionPoint", intersectionPoint);
+					}
+				}
+			}
+
+			if (p1 == points[0])
+			{
+				utl::debug("	i", i);
+				utl::debug("flag", flag);
+				utl::debug("p0", p0);
+				utl::debug("p1", p1);
+				utl::debug("lp0", lp0);
+				utl::debug("lp1", lp1);
+
+				utl::debug("equal to p0?", (intersectionPoint == p0));
+				utl::debug("equal to p1?", (intersectionPoint == p1));
+
+
+				utl::debug("intersectionPoint", intersectionPoint);
 			}
 		}
 	}
@@ -52,7 +93,7 @@ bool sortByDistToStartPoint(Drawing::IntersectionInfo info0, Drawing::Intersecti
 
 void Drawing::processNewPoint(glm::vec2 point)
 {
-	cout << "	Processing New Point" << endl;
+	utl::debug(">>>>>>>>> Adding New Point", point);
 	if (getNumPoints() > 0)
 	{
 		glm::vec2 lastPoint = getLastPoint();
@@ -64,6 +105,13 @@ void Drawing::processNewPoint(glm::vec2 point)
 		Line tempLine;
 
 	//	cout << "	intersections.size() " << intersections.size() << endl;
+
+		cout << "before" << endl;
+		for (int i = 0; i < points.size(); i++)
+		{
+			cout << i << "		" << points[i].x << " " << points[i].y << endl;
+		}
+
 
 		for (int i = 0; i < intersections.size(); i++)
 		{
@@ -90,6 +138,13 @@ void Drawing::processNewPoint(glm::vec2 point)
 		lines.push_back(tempLine);
 
 		points.push_back(point);
+
+		cout << "After" << endl;
+		for (int i = 0; i < points.size(); i++)
+		{
+			cout << i << "		" << points[i].x << " " << points[i].y << endl;
+		}
+
 	}
 	else
 	{
@@ -144,7 +199,7 @@ void Drawing::createVerticesAndEdges()
 
 	for (int i = 0; i < points.size(); i++)
 	{
-		cout << "		" << points[i].x << " " << points[i].y << endl;
+		cout << i <<	"		" << points[i].x << " " << points[i].y << endl;
 	}
 
 	cout << "Actually processing " << endl;
@@ -180,19 +235,19 @@ void Drawing::createVerticesAndEdges()
 		}
 	}
 
+	/*
 	cout << " printing vertices " << vertices.size() << endl;
 	for (int i = 0; i < vertices.size(); i++)
 	{
 		vertices[i].print();
 	}
 
-
 	cout << endl << endl << " printing edges" << edges.size() << endl;
 	for (int i = 0; i < edges.size(); i++)
 	{
 		edges[i].print();
 	}
-
+	*/
 }
 
 // 4.1, he had a definition for convex
@@ -391,6 +446,118 @@ bool Drawing::alreadyInVector(vector<Edge> toBeRemoved, Edge edge)
 	}
 	return false;
 }
+
+
+void Drawing::loadTestData(char* filename)
+{
+	mValue content = utl::readJsonFileToMap(filename);
+
+	const mArray& addr_array = content.get_array();
+
+	vector<Vertex> newVertices;
+	vector<Edge> newEdges;
+	for (int i = 0; i < addr_array.size(); i++)
+	{
+		const mObject obj = addr_array[i].get_obj();
+		Vertex newV = deserializeVertex(obj);
+		newVertices.push_back(newV);		
+	}
+
+	vertices = newVertices;
+	edges = newEdges;
+
+//	verifyLoadTestDataFunction(vertices, edges, newVertices, newEdges);
+}
+
+Vertex Drawing::deserializeVertex(const mObject& obj)
+{
+	Vertex v;
+	v.id = utl::findValue(obj, "id").get_int();
+	float x = utl::findValue(obj, "x").get_real();
+	float y = utl::findValue(obj, "y").get_real();
+
+	glm::vec2 pos = glm::vec2(x, y);
+
+	v.pos = pos;
+
+	const mArray& neighborsArray = utl::findValue(obj, "neighbors").get_array();
+	for (int j = 0; j < neighborsArray.size(); j++)
+	{
+		int neighborId = neighborsArray[j].get_int();
+		v.neighbors.push_back(neighborId);
+	}
+	return v;
+}
+
+
+void Drawing::verifyLoadTestDataFunction(vector<Vertex> oriVertices, vector<Edge> oriEdges,
+								vector<Vertex> newVertices, vector<Edge> newEdges)
+{
+	
+	cout << "verifyLoadTestDataFunction " << oriVertices.size() << " " << newVertices.size() << endl;
+	if (oriVertices.size() != newVertices.size())
+	{
+		string excceptionMsg = "Size Don't Match";
+		excceptionMsg += "orgVertices has size " + utl::intToStr(oriVertices.size());
+		excceptionMsg += ", newVertices has size " + utl::intToStr(newVertices.size());
+		throw string(excceptionMsg);
+	}
+
+
+	for (int i = 0; i < newVertices.size(); i++)
+	{
+		Vertex v0 = oriVertices[i];
+		Vertex v1 = newVertices[i];
+
+		if (v0.id != v1.id)
+		{
+			string excceptionMsg = "Id Don't Match on id " + utl::floatToStr(v0.id);
+			throw string(excceptionMsg);
+		}
+		else if (v0.pos != v1.pos)
+		{
+			string excceptionMsg = "position Don't Match " + utl::vec2ToStr(v0.pos) + " != " + utl::vec2ToStr(v1.pos);
+			throw string(excceptionMsg);
+		}
+
+		v0.print();
+		v1.print();
+
+	}
+}
+
+
+Object Drawing::serializeVertex(Vertex v)
+{
+	Object vertexObj;
+	const Value neighbors(v.neighbors.begin(), v.neighbors.end());
+	
+	vertexObj.push_back(Pair("id", v.id));
+	vertexObj.push_back(Pair("x", v.pos.x));
+	vertexObj.push_back(Pair("y", v.pos.y));
+	vertexObj.push_back(Pair("neighbors", neighbors));
+
+	return vertexObj;
+}
+
+
+void Drawing::saveTestData()
+{
+	ofstream myfile;
+	myfile.open("data.txt");
+
+	Array verticesArray;
+
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		Object vObj = serializeVertex(vertices[i]);
+		verticesArray.push_back(vObj);
+	}
+
+	write(verticesArray, myfile, pretty_print);
+	myfile.close();
+}
+
 
 
 void Drawing::removeEdge(Edge edge)
@@ -699,6 +866,12 @@ bool Drawing::getCounterClockWiseMostVertex(Vertex vPrev, Vertex vCur, Vertex& o
 void Drawing::postProcess()
 {
 	createVerticesAndEdges();
+
+	cout << " ############### postProcess" << endl;
+
+	saveTestData();
+//	loadTestData("data.txt");
+
 	findAllMinimalCycleBasis();
 }
 

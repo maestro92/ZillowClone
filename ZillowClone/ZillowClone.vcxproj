@@ -439,6 +439,7 @@
     <ClInclude Include="utility\utility_gl.h" />
     <ClInclude Include="utility\utility_gl_uni_loc.h" />
     <ClInclude Include="utility\utility_json.h" />
+    <ClInclude Include="utility\utility_math.h" />
     <ClInclude Include="utility\utility_sdl.h" />
     <ClInclude Include="pipeline.h" />
     <ClInclude Include="renderer\renderer.h" />
