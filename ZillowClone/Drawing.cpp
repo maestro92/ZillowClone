@@ -46,7 +46,7 @@ bool sortByDistToStartPoint(Drawing::IntersectionInfo info0, Drawing::Intersecti
 
 void Drawing::processNewPoint(glm::vec2 point)
 {
-	utl::debug(">>>>>>>>> Adding New Point", point);
+//	utl::debug(">>>>>>>>> Adding New Point", point);
 	if (getNumPoints() > 0)
 	{
 		glm::vec2 lastPoint = getLastPoint();
@@ -57,14 +57,13 @@ void Drawing::processNewPoint(glm::vec2 point)
 
 		Line tempLine;
 
-	//	cout << "	intersections.size() " << intersections.size() << endl;
-
+		/*
 		cout << "before" << endl;
 		for (int i = 0; i < points.size(); i++)
 		{
 			cout << i << "		" << points[i].x << " " << points[i].y << endl;
 		}
-
+		*/
 
 		for (int i = 0; i < intersections.size(); i++)
 		{
@@ -92,11 +91,13 @@ void Drawing::processNewPoint(glm::vec2 point)
 
 		points.push_back(point);
 
+		/*
 		cout << "After" << endl;
 		for (int i = 0; i < points.size(); i++)
 		{
 			cout << i << "		" << points[i].x << " " << points[i].y << endl;
 		}
+		*/
 
 	}
 	else
@@ -237,7 +238,6 @@ here we see if D_next is CW relative to D_curr
 // this is part 4 of the pdf
 void Drawing::findAllMinimalCycleBasis()
 {
-
 	polygons.clear();
 
 	backupVerticesAndEdges();
@@ -260,7 +260,7 @@ void Drawing::findAllMinimalCycleBasis()
 		hasValidStartVertex = false;
 		iterations = 0;
 
-		cout << "		Starting new cycle with " << startVertex.id << endl;
+	//	cout << "		Starting new cycle with " << startVertex.id << endl;
 
 		cycleEdgeList.clear();
 		while (vCurr != startVertex || started == false)
@@ -287,22 +287,11 @@ void Drawing::findAllMinimalCycleBasis()
 
 			Edge edge(vPrev.id, vCurr.id);
 			cycleEdgeList.push_back(edge);
-
-			/*
-			iterations++;
-			if (iterations > 10)
-			{
-				cout << "something is wrong, breaking here" << endl;
-				break;
-			}
-			*/
 		}
 
 		vector<int> tempList;
-//		cout << "Found a cycle " << endl;
 		for (int i = 0; i < cycleEdgeList.size(); i++)
-		{
-			
+		{			
 			if (i == 0)
 			{
 				tempList.push_back(cycleEdgeList[i].id0);
@@ -323,14 +312,10 @@ void Drawing::findAllMinimalCycleBasis()
 		for (int i = 0; i < cycleEdgeList.size(); i++)
 		{
 			Vertex v = vertices[cycleEdgeList[i].id1];
-			Vertex v1 = vertices[cycleEdgeList[i].id0];
-
-			cout << "	v id " << v.id << ", neighbor size: " << v.neighbors.size() << endl;
 			toBeRemoved.push_back(cycleEdgeList[i]);
 
 			if (v.neighbors.size() > 2)
 			{		
-				cout << "	breaking at " << v.id << endl;
 				break;
 			}
 		}
@@ -340,7 +325,6 @@ void Drawing::findAllMinimalCycleBasis()
 		for (int i = cycleEdgeList.size() - 1; i >= 0; i--)
 		{
 			Vertex v = vertices[cycleEdgeList[i].id0];
-
 			if (alreadyInVector(toBeRemoved, cycleEdgeList[i]) == false)
 			{
 				toBeRemoved.push_back(cycleEdgeList[i]);
@@ -348,14 +332,12 @@ void Drawing::findAllMinimalCycleBasis()
 
 			if (v.neighbors.size() > 2)
 			{
-				cout << "	breaking at2 " << v.id << endl;
 				break;
 			}			
 		}
 
 		for (int i = 0; i < toBeRemoved.size(); i++)
 		{
-			cout << "removing edge " << toBeRemoved[i].id0 << " " << toBeRemoved[i].id1 << endl;
 			removeEdge(toBeRemoved[i]);
 		}
 
@@ -379,19 +361,20 @@ void Drawing::findAllMinimalCycleBasis()
 			newV.resetNeighbors();
 			unprocessedPolygonVertices.push_back(newV);
 		}
-
+		cout << endl;
 
 		EarclippingPolygon earclippingPolygon;
 		earclippingPolygon.initFromUnprocessedVertices(unprocessedPolygonVertices);
 
 		earclippingPolygons.push_back(earclippingPolygon);
 
-		cout << endl;
+
 	}
 
 	cout << "############ Printing earclippingPolygons" << endl;
 	for (int i = 0; i < earclippingPolygons.size(); i++)
 	{
+		cout << "		Printing earclippingPolygon" << endl;
 		earclippingPolygons[i].print();
 	}
 }

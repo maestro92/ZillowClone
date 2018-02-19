@@ -115,6 +115,7 @@ struct Vertex
 	{
 		return id != other.id;
 	}
+
 };
 
 struct Edge

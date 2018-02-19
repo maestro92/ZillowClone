@@ -188,17 +188,15 @@ void ZillowClone::init()
 	SDL_WM_SetCaption("ZillowClone", NULL);
 
 
-	loadData = false;
+	loadData = true;
 
 	if (loadData)
 	{
 		curDrawing.saveLatest = false;
-		curDrawing.loadTestData("rand_shape0.txt");
+		curDrawing.loadTestData("rand_shape1.txt");
 		createRenderHandleForLoadedTestData(curDrawing);
 		debugDrawing(curDrawing);
 		curDrawing.postProcess();
-
-
 	}
 	else
 	{
