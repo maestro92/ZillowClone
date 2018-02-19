@@ -191,11 +191,16 @@ void Drawing::processIntersection(IntersectionInfo info)
 // implement the algorithm in this post
 // https://stackoverflow.com/questions/16782898/algorithm-for-finding-minimal-cycles-in-a-graph
 
+/*
+void Drawing::calculateVerticesAngle()
+{
+	for(int i=0;
+}
+*/
 
 void Drawing::createVerticesAndEdges()
 {
 	cout << "############ In Post Process " << points.size() << " " << endl;
-
 
 	for (int i = 0; i < points.size(); i++)
 	{
@@ -234,6 +239,7 @@ void Drawing::createVerticesAndEdges()
 			}
 		}
 	}
+
 
 	/*
 	cout << " printing vertices " << vertices.size() << endl;
@@ -276,7 +282,7 @@ here we see if D_next is CW relative to D_curr
 void Drawing::findAllMinimalCycleBasis()
 {
 
-	verticesGroups.clear();
+	polygons.clear();
 
 	backupVerticesAndEdges();
 
@@ -298,9 +304,6 @@ void Drawing::findAllMinimalCycleBasis()
 		hasValidStartVertex = false;
 		iterations = 0;
 
-//		cout << ">>>>>Starting a cycle " << endl;
-//		cout << "		startVertex is " << startVertex.id << endl;
-
 		cycleEdgeList.clear();
 		while (vCurr != startVertex || started == false)
 		{
@@ -308,15 +311,12 @@ void Drawing::findAllMinimalCycleBasis()
 			if (started == false)
 			{
 				hasValidStartVertex = getClockWiseMostVertex(startVertex, supportLine, vNext);
-//				cout << "		vNext1 is " << vNext.id << endl;
 				started = true;
 			}
 			else
 			{
 				hasValidStartVertex = getCounterClockWiseMostVertex(vPrev, vCurr, vNext);
-//				cout << "		vNext2 is " << vNext.id << endl;
 			}
-
 
 			if (hasValidStartVertex == false)
 			{
@@ -356,7 +356,7 @@ void Drawing::findAllMinimalCycleBasis()
 			}
 		}
 
-		verticesGroups.push_back(tempList);
+		polygons.push_back(tempList);
 
 
 		// first to CCW traversal to remove edges
@@ -417,16 +417,38 @@ void Drawing::findAllMinimalCycleBasis()
 
 
 	cout << "Printing VerticesGroups" << endl;
-	for (int i = 0; i < verticesGroups.size(); i++)
+	for (int i = 0; i < polygons.size(); i++)
 	{
-		for (int j = 0; j < verticesGroups[i].size(); j++)
+		vector<Vertex> unprocessedPolygonVertices;
+
+		for (int j = 0; j < polygons[i].size(); j++)
 		{
-			cout << verticesGroups[i][j] << " ";
+			cout << polygons[i][j] << " ";
+			int id = polygons[i][j];
+			Vertex newV = Vertex(vertices[id]);
+
+			newV.resetNeighbors();
+			unprocessedPolygonVertices.push_back(newV);
 		}
+
+
+		EarclippingPolygon earclippingPolygon;
+		earclippingPolygon.initFromUnprocessedVertices(unprocessedPolygonVertices);
+
+		earclippingPolygons.push_back(earclippingPolygon);
+
 		cout << endl;
 	}
 
+	cout << "############ Printing earclippingPolygons" << endl;
+	for (int i = 0; i < earclippingPolygons.size(); i++)
+	{
+		earclippingPolygons[i].print();
+	}
 }
+
+
+
 
 bool Drawing::alreadyInVector(vector<Edge> toBeRemoved, Edge edge)
 {

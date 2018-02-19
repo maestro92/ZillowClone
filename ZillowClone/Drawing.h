@@ -2,6 +2,7 @@
 #define DRAWING_H_
 
 #include "graph_structs.h"
+#include "earclipping_polygon.h"
 #include <iostream>     // std::cout
 #include <algorithm>    // std::sort
 #include <vector>       // std::vector
@@ -48,6 +49,10 @@ class Drawing
 
 		}
 
+		
+	//	void cleanupPolygons();		
+	//	void cleanupPolygon(vector<int> polygon);
+
 
 		static float isZero(float num)
 		{
@@ -82,6 +87,7 @@ class Drawing
 
 		// find all the intersection caused by this new line(p0, p1)
 		vector<IntersectionInfo> getIntersectionList(glm::vec2 p0, glm::vec2 p1);
+
 
 
 		void processIntersection(IntersectionInfo info);
@@ -196,6 +202,8 @@ class Drawing
 
 		int getPointIndex(glm::vec2 point);
 
+		void triangulateClosedLoops();
+		void findPointsInClosedLoops();
 
 		glm::vec2 getLastPoint()
 		{
@@ -212,8 +220,10 @@ class Drawing
 	public:
 		std::function<void(glm::vec2) > onAddIntersection;
 
-		// to see which groups of vertices are grouped together
-		vector< vector<int>> verticesGroups;
+		// the list of vertices that forms a polygon in your drawing
+		vector< vector<int>> polygons;
+
+		vector<EarclippingPolygon> earclippingPolygons;
 
 		vector<Vertex> vertices;
 		vector<Edge> edges;

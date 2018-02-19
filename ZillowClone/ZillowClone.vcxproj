@@ -92,6 +92,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Drawing.cpp" />
+    <ClCompile Include="earclipping_polygon.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="gui\custom_gui\bar.cpp" />
     <ClCompile Include="libraries\json_spirit\json_spirit_reader.cpp" />
@@ -243,6 +244,7 @@
     <ClInclude Include="client_server\client_server_packets.h" />
     <ClInclude Include="Drawing.h" />
     <ClInclude Include="DrawingEdge.h" />
+    <ClInclude Include="earclipping_polygon.h" />
     <ClInclude Include="graph_structs.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="gui\custom_gui\bar.h" />

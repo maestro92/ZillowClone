@@ -35,6 +35,8 @@ struct Vertex
 {
 	glm::vec2 pos;
 	int id;
+	float angle;
+	
 	vector<int> neighbors;
 
 	Vertex()
@@ -57,6 +59,23 @@ struct Vertex
 				neighbors.erase(neighbors.begin() + i);
 			}
 		}
+	}
+
+	void resetNeighbors()
+	{
+		neighbors.clear();
+	}
+
+	bool hasNeighbors(int idIn)
+	{
+		for (int i = 0; i < neighbors.size(); i++)
+		{
+			if (neighbors[i] == idIn)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	int getFirstNeighborThatIsNot(int idIn)
