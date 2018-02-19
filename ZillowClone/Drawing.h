@@ -230,6 +230,7 @@ class Drawing
 
 		vector<Vertex> backupVertices;
 		vector<Edge> backupEdges;
+		bool saveLatest;
 };
 
 

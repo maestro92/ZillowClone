@@ -46,7 +46,7 @@ struct Vertex
 
 	void addNeighbor(int idIn)
 	{
-		cout << "Vertex " << id << " is adding " << idIn << endl;
+//		cout << "Vertex " << id << " is adding " << idIn << endl;
 		neighbors.push_back(idIn);
 	}
 
@@ -97,13 +97,13 @@ struct Vertex
 
 	void print()
 	{
-		cout << "myId is  " << id << ", Coords: " << pos.x << " " << pos.y << endl;
+		cout << "myId is " << id << ", Coords: " << pos.x << " " << pos.y << endl;
 		cout << "	I have " << neighbors.size() << endl;
 		for (int i = 0; i < neighbors.size(); i++)
 		{
 			cout << neighbors[i] << " ";
 		}
-		cout << endl << endl << endl;
+		cout << endl << endl;
 	}
 
 	bool operator==(const Vertex &other) const 

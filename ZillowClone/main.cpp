@@ -192,13 +192,17 @@ void ZillowClone::init()
 
 	if (loadData)
 	{
-		curDrawing.loadTestData("data.txt");
+		curDrawing.saveLatest = false;
+		curDrawing.loadTestData("rand_shape0.txt");
 		createRenderHandleForLoadedTestData(curDrawing);
 		debugDrawing(curDrawing);
+		curDrawing.postProcess();
+
+
 	}
 	else
 	{
-
+		curDrawing.saveLatest = true;
 	}
 }
 
@@ -457,6 +461,8 @@ void FaceOff::serverHandleDeviceEvents()
 
 void ZillowClone::onMouseBtnUp()
 {
+	cout << "onMouseBtnUp" << endl;
+
 	if (inDrawingMode)
 	{
 		startedCurrentLine = false;
@@ -543,10 +549,10 @@ void ZillowClone::debugDrawing(Drawing drawing)
 
 		glm::vec2 pos = v.pos;
 		glm::vec3 screenPos = worldToScreen(glm::vec3(pos.x, pos.y, 0));
-		utl::debug("screenPos", screenPos);
-		utl::debug("v.pos;", v.pos);
+	//	utl::debug("screenPos", screenPos);
+	//	utl::debug("v.pos;", v.pos);
 		glm::vec3 labelPos = screenToUISpace(glm::vec2(screenPos.x, screenPos.y));
-		utl::debug("		labelPos", labelPos);
+	//	utl::debug("		labelPos", labelPos);
 		Label* verticeLabel = new Label(utl::intToStr(v.id), labelPos.x, labelPos.y, 10, 10, COLOR_WHITE);
 		verticeLabel->setFont(20, COLOR_PURPLE);
 		m_gui.addGUIComponent(verticeLabel);

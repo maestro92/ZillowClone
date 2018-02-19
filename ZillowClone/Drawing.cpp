@@ -7,10 +7,6 @@ vector<Drawing::IntersectionInfo> Drawing::getIntersectionList(glm::vec2 p0, glm
 {
 	vector<IntersectionInfo> intersectionEdges;
 
-	if (p1 == points[0])
-	{
-		cout << "Intersections " << endl;
-	}
 	for (int i = 0; i < lines.size(); i++)
 	{
 		glm::vec2 intersectionPoint;
@@ -18,60 +14,17 @@ vector<Drawing::IntersectionInfo> Drawing::getIntersectionList(glm::vec2 p0, glm
 		glm::vec2 lp0 = lines[i].p0;
 		glm::vec2 lp1 = lines[i].p1;
 
-		/*
-		utl::debug("p0", p0);
-		utl::debug("p1", p1);
-		utl::debug("lp0", lp0);
-		utl::debug("lp1", lp1);
-		*/
-
-
-
 	//	if (p0 != lp0 && p1 != lp1 || p0 != lp1 && p1 != lp0)
 		{
 			bool flag = LineSegmentLineSegmentIntersection(p0, p1, lp0, lp1, intersectionPoint, false);
-
-			// if (LineSegmentLineSegmentIntersection(p0, p1, lp0, lp1, intersectionPoint, false))
 			if (flag)
 			{
 				// we don't consider intersecting the start or end point of where u came from
 				if (!utl::equals(intersectionPoint, p0) && !utl::equals(intersectionPoint, p1))
-	//			if (intersectionPoint != p0 && intersectionPoint != p1)
 				{
-					if (p1 == points[0])
-					{
-						utl::debug("	i", i);
-						utl::debug("	>>>>>>>> adding intersectionPoint", intersectionPoint);
-					}
-
 					IntersectionInfo intersectionInfo(intersectionPoint, lp0, lp1, p0);
-
 					intersectionEdges.push_back(intersectionInfo);
 				}
-				else
-				{
-					if (p1 == points[0])
-					{
-						utl::debug("	i", i);
-						utl::debug("	not intersectionPoint", intersectionPoint);
-					}
-				}
-			}
-
-			if (p1 == points[0])
-			{
-				utl::debug("	i", i);
-				utl::debug("flag", flag);
-				utl::debug("p0", p0);
-				utl::debug("p1", p1);
-				utl::debug("lp0", lp0);
-				utl::debug("lp1", lp1);
-
-				utl::debug("equal to p0?", (intersectionPoint == p0));
-				utl::debug("equal to p1?", (intersectionPoint == p1));
-
-
-				utl::debug("intersectionPoint", intersectionPoint);
 			}
 		}
 	}
@@ -200,6 +153,7 @@ void Drawing::calculateVerticesAngle()
 
 void Drawing::createVerticesAndEdges()
 {
+	/*
 	cout << "############ In Post Process " << points.size() << " " << endl;
 
 	for (int i = 0; i < points.size(); i++)
@@ -207,7 +161,9 @@ void Drawing::createVerticesAndEdges()
 		cout << i <<	"		" << points[i].x << " " << points[i].y << endl;
 	}
 
+
 	cout << "Actually processing " << endl;
+	*/
 	glm::vec2 lastPoint;
 
 	for (int i = 0; i < points.size(); i++)
@@ -304,6 +260,8 @@ void Drawing::findAllMinimalCycleBasis()
 		hasValidStartVertex = false;
 		iterations = 0;
 
+		cout << "		Starting new cycle with " << startVertex.id << endl;
+
 		cycleEdgeList.clear();
 		while (vCurr != startVertex || started == false)
 		{
@@ -367,17 +325,12 @@ void Drawing::findAllMinimalCycleBasis()
 			Vertex v = vertices[cycleEdgeList[i].id1];
 			Vertex v1 = vertices[cycleEdgeList[i].id0];
 
-			if (i==0)
-			{
-				toBeRemoved.push_back(cycleEdgeList[0]);
-			}
-			else if (v.neighbors.size() == 2)
-			{
-				toBeRemoved.push_back(cycleEdgeList[i]);
-			}
-			else if (v.neighbors.size() > 2)
-			{
-				toBeRemoved.push_back(cycleEdgeList[i]);
+			cout << "	v id " << v.id << ", neighbor size: " << v.neighbors.size() << endl;
+			toBeRemoved.push_back(cycleEdgeList[i]);
+
+			if (v.neighbors.size() > 2)
+			{		
+				cout << "	breaking at " << v.id << endl;
 				break;
 			}
 		}
@@ -388,25 +341,21 @@ void Drawing::findAllMinimalCycleBasis()
 		{
 			Vertex v = vertices[cycleEdgeList[i].id0];
 
-			if (alreadyInVector(toBeRemoved, cycleEdgeList[i]) == true)
+			if (alreadyInVector(toBeRemoved, cycleEdgeList[i]) == false)
 			{
-				continue;
+				toBeRemoved.push_back(cycleEdgeList[i]);
 			}
 
 			if (v.neighbors.size() > 2)
 			{
-				toBeRemoved.push_back(cycleEdgeList[i]);
+				cout << "	breaking at2 " << v.id << endl;
 				break;
-			}
-			
-			else if (v.neighbors.size() == 2)
-			{
-				toBeRemoved.push_back(cycleEdgeList[i]);
-			}
+			}			
 		}
 
 		for (int i = 0; i < toBeRemoved.size(); i++)
 		{
+			cout << "removing edge " << toBeRemoved[i].id0 << " " << toBeRemoved[i].id1 << endl;
 			removeEdge(toBeRemoved[i]);
 		}
 
@@ -604,7 +553,7 @@ bool Drawing::getCycleStartingVertex(Vertex& output)
 	Vertex startNode;
 	for (int i = 0; i < vertices.size(); i++)
 	{
-		cout << vertices[i].id << ", neighbor size is " << vertices[i].neighbors.size() << endl;
+	//	cout << vertices[i].id << ", neighbor size is " << vertices[i].neighbors.size() << endl;
 		if (vertices[i].neighbors.size() > 0)
 		{
 			if (!startNode.isValid())
@@ -885,8 +834,10 @@ void Drawing::postProcess()
 
 	cout << " ############### postProcess" << endl;
 
-	saveTestData();
-//	loadTestData("data.txt");
+	if (saveLatest)
+	{
+		saveTestData();
+	}
 
 	findAllMinimalCycleBasis();
 }
