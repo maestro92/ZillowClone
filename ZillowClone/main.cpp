@@ -188,7 +188,7 @@ void ZillowClone::init()
 	SDL_WM_SetCaption("ZillowClone", NULL);
 
 
-	loadData = true;
+	loadData = false;
 
 	if (loadData)
 	{
@@ -197,6 +197,7 @@ void ZillowClone::init()
 		createRenderHandleForLoadedTestData(curDrawing);
 		debugDrawing(curDrawing);
 		curDrawing.postProcess();
+		createPointHandlesForEarclippingPolygons();
 	}
 	else
 	{
@@ -470,6 +471,8 @@ void ZillowClone::onMouseBtnUp()
 		curDrawing.postProcess();
 		debugDrawing(curDrawing);
 
+		createPointHandlesForEarclippingPolygons();
+
 		curDrawing.reset();
 		drawingList.push_back(curDrawing);
 	}
@@ -493,11 +496,7 @@ void ZillowClone::createRenderHandleForLoadedTestData(Drawing drawingIn)
 			worldPoint = temp[i].pos;
 			curDrawing.processNewPoint(worldPoint);
 
-			WorldObject obj = WorldObject();
-			obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
-			obj.setPosition(glm::vec3(worldPoint.x, worldPoint.y, 0));
-
-			obj.setScale(1);
+			WorldObject obj = constructPoint(worldPoint);
 			pointRenderHandles.push_back(obj);
 		}
 		else
@@ -505,39 +504,78 @@ void ZillowClone::createRenderHandleForLoadedTestData(Drawing drawingIn)
 			lastPoint = temp[i - 1].pos;
 			worldPoint = temp[i].pos;
 
-			WorldObject obj = WorldObject();
-			obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
-
-			glm::vec2 diffVector = worldPoint - lastPoint;
-			glm::vec2 centerPoint = lastPoint + glm::vec2(diffVector.x / 2.0, diffVector.y / 2.0);
-
-			obj.setPosition(glm::vec3(centerPoint.x, centerPoint.y, 0));
-
-			float angle = atan2(diffVector.y, diffVector.x) * 180 / PI;
-
-			float length = glm::distance(lastPoint, worldPoint);
-
-
-			glm::vec3 scale(length, 1, 1);
-
-			//	utl::debug("		scale", scale);
-
-			obj.setRotation(glm::rotate(angle, 0.0f, 0.0f, 1.0f));
-
-			obj.setScale(scale);
+			WorldObject obj = constructLine(lastPoint, worldPoint, 1);
 			pointRenderHandles.push_back(obj);
 		}
 
-		WorldObject obj = WorldObject();
-		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
-		obj.setPosition(glm::vec3(worldPoint.x, worldPoint.y, 0));
-
-		//	utl::debug("		worldPoint", worldPoint);
-
-		obj.setScale(1);
+		WorldObject obj = constructPoint(worldPoint);
 		actualRenderHandles.push_back(obj);
 	}
 }
+
+
+WorldObject ZillowClone::constructPoint(glm::vec2 p) const
+{
+	WorldObject obj = WorldObject();
+	obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
+	obj.setPosition(glm::vec3(p.x, p.y, 0));
+
+	obj.setScale(1);
+
+	return obj;
+}
+
+WorldObject ZillowClone::constructLine(glm::vec2 p0, glm::vec2 p1, float width) const
+{
+	WorldObject obj = WorldObject();
+	obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
+
+	glm::vec2 diffVector = p1 - p0;
+	glm::vec2 centerPoint = p0 + glm::vec2(diffVector.x / 2.0, diffVector.y / 2.0);
+
+	obj.setPosition(glm::vec3(centerPoint.x, centerPoint.y, 0));
+
+	float angle = atan2(diffVector.y, diffVector.x) * 180 / PI;
+
+	float length = glm::distance(p0, p1);
+
+	glm::vec3 scale(length, width, 1);
+
+	obj.setRotation(glm::rotate(angle, 0.0f, 0.0f, 1.0f));
+
+	obj.setScale(scale);
+
+	return obj;
+}
+
+
+
+void ZillowClone::createPointHandlesForEarclippingPolygons()
+{
+	ecTrianglesRenderHandles.clear();
+	for (int i = 0; i < curDrawing.earclippingPolygons.size(); i++)
+	{
+		createPointHandlesForEarclippingPolygon(curDrawing.earclippingPolygons[i]);
+	}
+}
+
+
+void ZillowClone::createPointHandlesForEarclippingPolygon(EarclippingPolygon ecPolygon)
+{
+	float earClippingLineWidth = 0.3f;
+	for (int i = 0; i < ecPolygon.triangles.size(); i++)
+	{
+		vector<Vertex> triangle = ecPolygon.triangles[i];
+		WorldObject line0 = constructLine(triangle[0].pos, triangle[1].pos, earClippingLineWidth);
+		WorldObject line1 = constructLine(triangle[0].pos, triangle[2].pos, earClippingLineWidth);
+		WorldObject line2 = constructLine(triangle[1].pos, triangle[2].pos, earClippingLineWidth);
+		ecTrianglesRenderHandles.push_back(line0);
+		ecTrianglesRenderHandles.push_back(line1);
+		ecTrianglesRenderHandles.push_back(line2);
+	}
+}
+
+
 
 void ZillowClone::debugDrawing(Drawing drawing)
 {
@@ -917,6 +955,12 @@ void ZillowClone::render()
 		}
 
 
+		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_RED);
+		for (int i = 0; i < ecTrianglesRenderHandles.size(); i++)
+		{
+			WorldObject obj = ecTrianglesRenderHandles[i];
+			obj.renderGroup(m_pipeline, p_renderer);
+		}
 
 
 	p_renderer->disableShader();

@@ -367,8 +367,6 @@ void Drawing::findAllMinimalCycleBasis()
 		earclippingPolygon.initFromUnprocessedVertices(unprocessedPolygonVertices);
 
 		earclippingPolygons.push_back(earclippingPolygon);
-
-
 	}
 
 	cout << "############ Printing earclippingPolygons" << endl;

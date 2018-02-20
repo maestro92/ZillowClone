@@ -46,6 +46,11 @@ float utl::barycentricInterpolation(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, gl
 }
 
 
+float utl::crossProduct2D(glm::vec2 a, glm::vec2 b)
+{
+	return a.x * b.y - a.y * b.x;
+}
+
 bool utl::chance(float percent)
 {
 	const float value = rand() / (float)RAND_MAX * 100;
@@ -88,5 +93,40 @@ glm::vec3 utl::interpolateEntityAngles(glm::vec3 pos0, glm::vec3 pos1, float int
 float utl::interpolateAngle(float f0, float f1, float interpFactor)
 {
 	return 0;
+}
+
+bool utl::sameSign(float a, float b)
+{
+	if (a > 0 && b > 0)
+		return true;
+	if (a < 0 && b < 0)
+		return true;
+	if (a == 0 && b == 0)
+		return true;
+	return false;
+}
+
+
+// RealTime Collision Detection 5.4.2
+bool utl::isPointInTriangle(glm::vec2 point, glm::vec2 v0, glm::vec2 v1, glm::vec2 v2)
+{
+	float p01 = crossProduct2D(point - v0, v1 - v0);
+	float p12 = crossProduct2D(point - v1, v2 - v1);
+
+	if (!sameSign(p01, p12))
+		return false;
+
+	float p20 = crossProduct2D(point - v2, v0 - v2);
+	if (!sameSign(p01, p20))
+		return false;
+	
+	return true;
+}
+
+
+
+bool utl::isPointInTriangle(glm::vec3 point, glm::vec3 v0, glm::vec3 v1, glm::vec3 v2)
+{
+	return true;
 }
 

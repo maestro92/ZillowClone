@@ -116,6 +116,11 @@ struct Vertex
 		return id != other.id;
 	}
 
+	bool isConvex()
+	{
+		return angle > 180;
+	}
+
 };
 
 struct Edge

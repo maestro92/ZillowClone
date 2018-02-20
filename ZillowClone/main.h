@@ -416,8 +416,8 @@ class ZillowClone
 		void onExistDrawingMode();
 
 		bool isNewPoint(glm::vec2 newPoint);
-
-
+		void createPointHandlesForEarclippingPolygons();
+		void createPointHandlesForEarclippingPolygon(EarclippingPolygon polygon);
 		void render();
 
 		void debugDrawing(Drawing drawing);
@@ -426,9 +426,10 @@ class ZillowClone
 
 		void processCurrentDrawnLine();
 
-		void renderGUI();
+		WorldObject constructPoint(glm::vec2 p) const;
+		WorldObject constructLine(glm::vec2 p0, glm::vec2 p1, float width) const;
 
-		
+		void renderGUI();
 
 		vector<int> latencyOptions;		// round trip
 		int latency;					// rount trip latency in milliseconds
@@ -437,6 +438,8 @@ class ZillowClone
 		glm::vec2 lastPoint;
 		Drawing curDrawing;
 		vector< Drawing> drawingList;
+
+		vector<WorldObject> ecTrianglesRenderHandles;
 
 		vector<WorldObject> pointRenderHandles;
 		vector<WorldObject> actualRenderHandles;

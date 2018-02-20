@@ -69,6 +69,8 @@ using namespace std;
 #define COLOR_RED         glm::vec3(1.0,0.0,0.0)
 #define COLOR_PURPLE      glm::vec3(1.0,0.0,1.0)
 #define YELLOW      glm::vec3(1.0,1.0,0.0)
+#define COLOR_RED      glm::vec3(1.0,0.0,0.0)
+
 
 #define DARK_GRAY   glm::vec3(0.25,0.25,0.25)
 #define GRAY        glm::vec3(0.5,0.5,0.5)
