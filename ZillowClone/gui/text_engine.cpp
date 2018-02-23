@@ -22,6 +22,8 @@ TextEngine::TextEngine(string font, int fontPixelSize, int screenWidth, int scre
 
     m_quad = QuadModel(1,1);
 
+//	m_quad = QuadModel(-0.5, 0.5, -0.5, 0.5);
+
 
     /// init freetype font
     string fontPath = "Assets/Fronts/" + font;

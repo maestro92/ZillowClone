@@ -275,6 +275,20 @@ void GUIManager::addGUIComponent(Control* control)
 	m_GUIComponents.push_back(control);
 }
 
+void GUIManager::addDebugLabel(Control* control)
+{
+	control->setID(m_GUIComponentsID);
+	m_debugLabels.push_back(control);
+}
+
+void GUIManager::removeDebugLabels()
+{
+	for (int i = 0; i < m_debugLabels.size(); i++)
+	{
+		delete m_debugLabels[i];
+	}
+	m_debugLabels.clear();
+}
 
 int GUIManager::getNumGUIComponent()
 {
@@ -298,15 +312,18 @@ void GUIManager::updateAndRender(MouseState mouseState)
 {
     for(int i=0; i<m_GUIComponents.size(); i++)
     {
-		if (m_sniperZoomMode && (i == m_horAimIndex || i == m_verAimIndex))
-		{
-			continue;
-		}
 
 		Control* control = m_GUIComponents[i];
 		control->update(mouseState);
 		control->render();
-	
+	}
+
+
+	for (int i = 0; i<m_debugLabels.size(); i++)
+	{
+		Control* control = m_debugLabels[i];
+		control->update(mouseState);
+		control->render();
 	}
 }
 

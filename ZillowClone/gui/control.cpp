@@ -43,6 +43,7 @@ void Control::init(string font, int size, int screenWidth, int screenHeight)
 {
     m_textEngine = TextEngine("", size, screenWidth, screenHeight);
     m_quadModel = QuadModel(1,1);
+//	m_quadModel = QuadModel(-0.5, 0.5, -0.5, 0.5);
 
     /// http://stackoverflow.com/questions/25416820/set-origin-to-top-left-corner-of-screen-in-opengl-es-2
     /// to set the top left (0,0), we invert bot with top in the ortho matrix

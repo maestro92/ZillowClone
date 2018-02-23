@@ -22,6 +22,10 @@ float tempPitch2 = 0;
 float tempYaw2 = 0;
 
 
+float CAMERA_POS_DELTA = 2;
+float CAMERA_ZOOM_DELTA = 2;
+
+//float delta = 2;
 
 #define PI 3.14159265
 
@@ -172,10 +176,10 @@ void ZillowClone::init()
 	m_pipeline.loadIdentity();
 //	m_pipeline.perspective(90, utl::SCREEN_WIDTH / utl::SCREEN_HEIGHT, utl::Z_NEAR, utl::Z_FAR);
 
-	m_zoom = 10;
-	m_range = 50;
-	m_pipeline.ortho(-m_range, m_range, -m_range, m_range, utl::Z_NEAR, utl::Z_FAR);
+	m_cameraZoom = 50;
+	m_cameraCenter = glm::vec2(0, 0);
 
+	updateCamera();
 
 	Model::enableVertexAttribArrays();
 
@@ -188,12 +192,13 @@ void ZillowClone::init()
 	SDL_WM_SetCaption("ZillowClone", NULL);
 
 
-	loadData = false;
+	loadData = true;
 
 	if (loadData)
 	{
 		curDrawing.saveLatest = false;
-		curDrawing.loadTestData("rand_shape1.txt");
+		curDrawing.loadTestData("rand_shape0.txt");
+
 		createRenderHandleForLoadedTestData(curDrawing);
 		debugDrawing(curDrawing);
 		curDrawing.postProcess();
@@ -404,7 +409,7 @@ int ZillowClone::getAverageFPS()
 
 
 
-
+/*
 #if 0
 void FaceOff::serverHandleDeviceEvents()
 {
@@ -445,10 +450,20 @@ void FaceOff::serverHandleDeviceEvents()
 						containedFlag = !containedFlag;
 						break;
 
-
 					case SDLK_z:
 						if (m_server.isInitalized)
 							m_spectatorCamera.setMouseIn(false);
+						break;
+
+					case SDLK_UP:
+						m_cameraCenter.y += delta;
+					case SDLK_DOWN:
+						m_cameraCenter.y -= delta;
+					case SDLK_LEFT:
+						m_cameraCenter.x -= delta;
+					case SDLK_RIGHT:
+						m_cameraCenter.y += delta;
+						updateCamera();
 						break;
 				}
 				break;
@@ -457,6 +472,16 @@ void FaceOff::serverHandleDeviceEvents()
 
 }
 #endif
+*/
+void ZillowClone::updateCamera()
+{
+	m_pipeline.ortho(m_cameraCenter.x - m_cameraZoom, 
+					m_cameraCenter.x + m_cameraZoom,
+					m_cameraCenter.y - m_cameraZoom,
+					m_cameraCenter.y + m_cameraZoom, utl::Z_NEAR, utl::Z_FAR);
+
+	debugDrawing(curDrawing);
+}
 
 void ZillowClone::onMouseBtnUp()
 {
@@ -473,8 +498,8 @@ void ZillowClone::onMouseBtnUp()
 
 		createPointHandlesForEarclippingPolygons();
 
-		curDrawing.reset();
-		drawingList.push_back(curDrawing);
+	//	curDrawing.reset();
+	//	drawingList.push_back(curDrawing);
 	}
 }
 
@@ -488,15 +513,15 @@ void ZillowClone::createRenderHandleForLoadedTestData(Drawing drawingIn)
 
 	vector<Vertex> temp = drawingIn.vertices;
 	temp.push_back(temp[0]);
+	float width = 0.1;
 
 	for (int i = 0; i < temp.size(); i++)
 	{
 		if (i == 0)
 		{
 			worldPoint = temp[i].pos;
-			curDrawing.processNewPoint(worldPoint);
 
-			WorldObject obj = constructPoint(worldPoint);
+			WorldObject obj = constructPoint(worldPoint, width);
 			pointRenderHandles.push_back(obj);
 		}
 		else
@@ -504,23 +529,25 @@ void ZillowClone::createRenderHandleForLoadedTestData(Drawing drawingIn)
 			lastPoint = temp[i - 1].pos;
 			worldPoint = temp[i].pos;
 
-			WorldObject obj = constructLine(lastPoint, worldPoint, 1);
+			WorldObject obj = constructLine(lastPoint, worldPoint, width);
 			pointRenderHandles.push_back(obj);
 		}
 
-		WorldObject obj = constructPoint(worldPoint);
+		WorldObject obj = constructPoint(worldPoint, width);
 		actualRenderHandles.push_back(obj);
 	}
 }
 
 
-WorldObject ZillowClone::constructPoint(glm::vec2 p) const
+WorldObject ZillowClone::constructPoint(glm::vec2 p, float width) const
 {
+
 	WorldObject obj = WorldObject();
 	obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
 	obj.setPosition(glm::vec3(p.x, p.y, 0));
 
-	obj.setScale(1);
+
+	obj.setScale(width);
 
 	return obj;
 }
@@ -579,21 +606,26 @@ void ZillowClone::createPointHandlesForEarclippingPolygon(EarclippingPolygon ecP
 
 void ZillowClone::debugDrawing(Drawing drawing)
 {
+	m_gui.removeDebugLabels();
+	float size = 600 / m_cameraZoom;
+
+//	float size = 300 / m_cameraZoom;
+
 	for (int i = 0; i < drawing.vertices.size(); i++)
 	{
 		Vertex v = drawing.vertices[i];
 
 		glm::vec2 pos = v.pos;
 		glm::vec3 screenPos = worldToScreen(glm::vec3(pos.x, pos.y, 0));
-	//	utl::debug("screenPos", screenPos);
-	//	utl::debug("v.pos;", v.pos);
 		glm::vec3 labelPos = screenToUISpace(glm::vec2(screenPos.x, screenPos.y));
-	//	utl::debug("		labelPos", labelPos);
-		Label* verticeLabel = new Label(utl::intToStr(v.id), labelPos.x, labelPos.y, 10, 10, COLOR_WHITE);
-		verticeLabel->setFont(20, COLOR_PURPLE);
-		m_gui.addGUIComponent(verticeLabel);
-	}
 
+		string s = utl::vec2ToStr(pos);
+
+		Label* verticeLabel = new Label(utl::intToStr(v.id), labelPos.x, labelPos.y, 0, 0, COLOR_WHITE);
+//		Label* verticeLabel = new Label(s, labelPos.x, labelPos.y, 0, 0, COLOR_WHITE);
+		verticeLabel->setFont(size, COLOR_PURPLE);
+		m_gui.addDebugLabel(verticeLabel);
+	}
 }
 
 
@@ -614,7 +646,7 @@ void ZillowClone::debugDrawing(Drawing drawing)
 void ZillowClone::addPoint(glm::vec2 worldPoint)
 {
 	cout << endl << endl << endl << endl;
-
+	float width = 0.5;
 	if (curDrawing.getNumPoints() > 0)
 	{
 		curDrawing.processNewPoint(worldPoint);
@@ -630,7 +662,7 @@ void ZillowClone::addPoint(glm::vec2 worldPoint)
 		float angle = atan2(diffVector.y, diffVector.x) * 180 / PI;
 		float length = glm::distance(lastPoint, worldPoint);
 
-		glm::vec3 scale(length, 1,1);
+		glm::vec3 scale(length, width, 1);
 		obj.setRotation(glm::rotate(angle, 0.0f , 0.0f, 1.0f));
 
 		obj.setScale(scale);
@@ -644,7 +676,7 @@ void ZillowClone::addPoint(glm::vec2 worldPoint)
 		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
 		obj.setPosition(glm::vec3(worldPoint.x, worldPoint.y, 0));
 
-		obj.setScale(1);
+		obj.setScale(width);
 		pointRenderHandles.push_back(obj);
 	}
 	
@@ -653,7 +685,7 @@ void ZillowClone::addPoint(glm::vec2 worldPoint)
 		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
 		obj.setPosition(glm::vec3(worldPoint.x, worldPoint.y, 0));
 
-		obj.setScale(1);
+		obj.setScale(width);
 		actualRenderHandles.push_back(obj);
 	}
 	
@@ -789,6 +821,8 @@ void ZillowClone::update()
 	{
 		switch (event.type)
 		{
+
+
 			case SDL_KEYDOWN:
 				switch (event.key.keysym.sym)
 				{
@@ -797,13 +831,13 @@ void ZillowClone::update()
 						break;
 
 					case SDLK_q:
-
-						updateZoom(true);
-
+						m_cameraZoom -= CAMERA_ZOOM_DELTA;
+						updateCamera();
 
 						break;
 					case SDLK_w:
-						updateZoom(false);
+						m_cameraZoom -= CAMERA_ZOOM_DELTA;
+						updateCamera();
 						break;
 
 					case SDLK_e:
@@ -830,17 +864,57 @@ void ZillowClone::update()
 
 						m_gui.setDrawingModeFlag(inDrawingMode);
 						break;
+
+					case SDLK_UP:
+						m_cameraCenter.y += CAMERA_POS_DELTA;
+						updateCamera();
+						break;
+					case SDLK_DOWN:
+						m_cameraCenter.y -= CAMERA_POS_DELTA;
+						updateCamera();
+						break;
+					case SDLK_LEFT:
+						m_cameraCenter.x -= CAMERA_POS_DELTA;
+						updateCamera();
+						break;
+					case SDLK_RIGHT:
+						m_cameraCenter.x += CAMERA_POS_DELTA;
+						updateCamera();
+						break;
+
 					default:
 						break;
 				}
 				break;
 			
 			case SDL_MOUSEBUTTONDOWN:
-				onMouseBtnDown();
+				switch (event.button.button)
+				{
+					case SDL_BUTTON_LEFT:
+						onMouseBtnDown();
+						break;
+					case SDL_BUTTON_WHEELUP:
+						m_cameraZoom -= CAMERA_ZOOM_DELTA;
+						updateCamera();
+						break;
+					case SDL_BUTTON_WHEELDOWN:
+						m_cameraZoom += CAMERA_ZOOM_DELTA;
+						updateCamera();
+						break;
+				}
+
 				break;
 
 			case SDL_MOUSEBUTTONUP:
-				onMouseBtnUp();
+				switch (event.button.button)
+				{
+					case SDL_BUTTON_LEFT:
+						onMouseBtnUp();
+						break;
+				}
+
+
+
 				break;
 		}
 	}
@@ -854,6 +928,7 @@ void ZillowClone::update()
 
 }
 
+/*
 void ZillowClone::updateZoom(bool zoomingIn)
 {
 	if (zoomingIn)
@@ -868,7 +943,7 @@ void ZillowClone::updateZoom(bool zoomingIn)
 	}
 	utl::debug("m_range ", m_range);
 }
-
+*/
 /*
 
 Frame

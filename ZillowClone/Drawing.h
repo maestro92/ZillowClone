@@ -88,12 +88,13 @@ class Drawing
 		// find all the intersection caused by this new line(p0, p1)
 		vector<IntersectionInfo> getIntersectionList(glm::vec2 p0, glm::vec2 p1);
 
-
+		void printPointsAndLines();
+		void printVerticesAndEdges();
 
 		void processIntersection(IntersectionInfo info);
-
+		void recordNewInputPoint(glm::vec2 point);
 		void processNewPoint(glm::vec2 point);
-
+		void doEarClipping();
 		bool hasAlreadyThisEdge(int id0, int id1);
 
 
@@ -138,6 +139,7 @@ class Drawing
 
 		void reset()
 		{
+			inputPoints.clear();
 			points.clear();
 			lines.clear();
 
@@ -181,6 +183,12 @@ class Drawing
 		}
 
 
+		Object serializePoints(glm::vec2 p);
+		glm::vec2 deserializePoints(const mObject& obj);
+
+		void loadInputRawPoints(const mObject& obj);
+		void loadRawPoints(const mObject& obj);
+		void loadVerticesData(const mObject& obj);
 		void loadTestData(char* file);
 		void saveTestData();
 
@@ -200,7 +208,7 @@ class Drawing
 
 		int hasAlreadyProcessedThisPoint(glm::vec2 point);
 
-		int getPointIndex(glm::vec2 point);
+		int getPointIndex(glm::vec2 point0, glm::vec2 point1);
 
 		void triangulateClosedLoops();
 		void findPointsInClosedLoops();
@@ -212,6 +220,7 @@ class Drawing
 
 
 		// by traversal order
+		vector<glm::vec2> inputPoints;
 		vector<glm::vec2> points;
 		vector<Line> lines;
 
@@ -231,6 +240,8 @@ class Drawing
 		vector<Vertex> backupVertices;
 		vector<Edge> backupEdges;
 		bool saveLatest;
+
+		int newPointCounter;
 };
 
 

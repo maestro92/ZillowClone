@@ -76,9 +76,15 @@ class GUIManager
 
 		void setDrawingModeFlag(bool flag);
 
+		void addDebugLabel(Control* control);
+		void removeDebugLabels();
+
 		Pipeline& getPipeline();
 
     private:
+
+
+
         int m_GUIComponentsID;
         int m_GUIComponentsFlags;
 
@@ -92,6 +98,7 @@ class GUIManager
 		Label* m_drawingModeLabel;
 
         vector<Control*> m_GUIComponents;
+		vector<Control*> m_debugLabels;
 
 		bool m_sniperZoomMode;
 		int m_horAimIndex;

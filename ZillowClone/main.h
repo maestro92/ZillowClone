@@ -426,10 +426,14 @@ class ZillowClone
 
 		void processCurrentDrawnLine();
 
-		WorldObject constructPoint(glm::vec2 p) const;
+		WorldObject constructPoint(glm::vec2 p, float width) const;
 		WorldObject constructLine(glm::vec2 p0, glm::vec2 p1, float width) const;
 
 		void renderGUI();
+		void updateCamera();
+		glm::vec2 m_cameraCenter;
+		float m_cameraZoom = 50;
+
 
 		vector<int> latencyOptions;		// round trip
 		int latency;					// rount trip latency in milliseconds

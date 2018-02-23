@@ -41,12 +41,20 @@ bool sortByDistToStartPoint(Drawing::IntersectionInfo info0, Drawing::Intersecti
 	return glm::dot(vec0, vec0) < glm::dot(vec1, vec1);
 }
 
-
-
+void Drawing::recordNewInputPoint(glm::vec2 point)
+{
+	inputPoints.push_back(point);
+}
 
 void Drawing::processNewPoint(glm::vec2 point)
 {
-//	utl::debug(">>>>>>>>> Adding New Point", point);
+	utl::debug(">>>>>>>>> Adding New Point", point);
+
+	if (saveLatest)
+	{
+		recordNewInputPoint(point);
+	}
+
 	if (getNumPoints() > 0)
 	{
 		glm::vec2 lastPoint = getLastPoint();
@@ -64,17 +72,34 @@ void Drawing::processNewPoint(glm::vec2 point)
 			cout << i << "		" << points[i].x << " " << points[i].y << endl;
 		}
 		*/
+		/*
+		if (newPointCounter == 4 || newPointCounter == 7)
+		{
+			cout << "	Intersections.size " << intersections.size() << endl;
+			printPointsAndLines();
+		}
+		*/
 
 		for (int i = 0; i < intersections.size(); i++)
 		{
 			IntersectionInfo info = intersections[i];
+
+			/*
+			if (newPointCounter == 7)
+			{
+				cout << "info point" << endl;
+				cout << info.point0.x << " " << info.point0.y << ", " << info.point1.x << " " << info.point1.y << endl;
+			}
+			*/
+
 			processIntersection(info);
 
 			// then also add the segement 
 			tempLine = Line(lastPoint, info.intersectionPoint);
 			lines.push_back(tempLine);
 
-			int index = getPointIndex(info.point0);
+			int index = getPointIndex(info.point0, info.point1);
+
 			points.insert(points.begin() + index + 1, info.intersectionPoint);
 
 			lastPoint = info.intersectionPoint;
@@ -92,20 +117,28 @@ void Drawing::processNewPoint(glm::vec2 point)
 		points.push_back(point);
 
 		/*
-		cout << "After" << endl;
-		for (int i = 0; i < points.size(); i++)
+		if (newPointCounter == 4 || newPointCounter == 7)
 		{
-			cout << i << "		" << points[i].x << " " << points[i].y << endl;
+			cout << "	Intersections.size " << intersections.size() << endl;
+			printPointsAndLines();
 		}
 		*/
-
 	}
 	else
 	{
 		points.push_back(point);
 	}
 
-	/*
+
+
+	newPointCounter++;
+
+}
+
+
+void Drawing::printPointsAndLines()
+{
+	
 	cout << "	*****" << endl;
 	cout << "	Printing points" << endl;
 	for (int i = 0; i < points.size(); i++)
@@ -119,7 +152,7 @@ void Drawing::processNewPoint(glm::vec2 point)
 	{
 		lines[i].print();
 	}
-	*/
+	
 }
 
 void Drawing::processIntersection(IntersectionInfo info)
@@ -165,8 +198,6 @@ void Drawing::createVerticesAndEdges()
 
 	cout << "Actually processing " << endl;
 	*/
-	glm::vec2 lastPoint;
-
 	for (int i = 0; i < points.size(); i++)
 	{
 		if (i == 0)
@@ -185,7 +216,7 @@ void Drawing::createVerticesAndEdges()
 				addVertex(points[i], newId);
 				id1 = newId;
 			}
-
+		//	cout << "	id0 " << id0 << ",	id1 " << id1 << endl;
 			if (hasAlreadyThisEdge(id0, id1) == false)
 			{
 				// or you can do a check and see if the are any existing edges already
@@ -197,8 +228,13 @@ void Drawing::createVerticesAndEdges()
 		}
 	}
 
+	// printVerticesAndEdges();
+}
 
-	/*
+
+void Drawing::printVerticesAndEdges()
+{
+
 	cout << " printing vertices " << vertices.size() << endl;
 	for (int i = 0; i < vertices.size(); i++)
 	{
@@ -210,8 +246,9 @@ void Drawing::createVerticesAndEdges()
 	{
 		edges[i].print();
 	}
-	*/
+
 }
+
 
 // 4.1, he had a definition for convex
 // D · D0(perpendicular sign) < 0 and D · D1(perpendicular sign) > 0
@@ -250,7 +287,7 @@ void Drawing::findAllMinimalCycleBasis()
 	// we wish to keep the interior immediately to the left when we traverse through V1
 	vector<Edge> cycleEdgeList;
 
-	int k = 0;
+
 	int iterations = 0;
 	while (hasValidStartVertex)
 	{
@@ -269,12 +306,20 @@ void Drawing::findAllMinimalCycleBasis()
 			if (started == false)
 			{
 				hasValidStartVertex = getClockWiseMostVertex(startVertex, supportLine, vNext);
+			//	cout << "startVertex " << startVertex.id << endl;
 				started = true;
 			}
 			else
 			{
 				hasValidStartVertex = getCounterClockWiseMostVertex(vPrev, vCurr, vNext);
 			}
+
+			/*
+			if (startVertex.id == 13)
+			{
+				cout << vNext.id << endl;
+			}
+			*/
 
 			if (hasValidStartVertex == false)
 			{
@@ -308,10 +353,12 @@ void Drawing::findAllMinimalCycleBasis()
 
 		// first to CCW traversal to remove edges
 		vector<Edge> toBeRemoved;
+	//	cout << "CCW traversal" << endl;
 		// remove removable edges
 		for (int i = 0; i < cycleEdgeList.size(); i++)
 		{
 			Vertex v = vertices[cycleEdgeList[i].id1];
+		//	cout << "	removing edge " << cycleEdgeList[i].id0 << " " << cycleEdgeList[i].id1 << endl;
 			toBeRemoved.push_back(cycleEdgeList[i]);
 
 			if (v.neighbors.size() > 2)
@@ -320,13 +367,14 @@ void Drawing::findAllMinimalCycleBasis()
 			}
 		}
 
-
+		// cout << "CW traversal" << endl;
 		// then to CW traversal to remove edges
 		for (int i = cycleEdgeList.size() - 1; i >= 0; i--)
 		{
 			Vertex v = vertices[cycleEdgeList[i].id0];
 			if (alreadyInVector(toBeRemoved, cycleEdgeList[i]) == false)
 			{
+			//	cout << "	removing edge " << cycleEdgeList[i].id0 << " " << cycleEdgeList[i].id1 << endl;
 				toBeRemoved.push_back(cycleEdgeList[i]);
 			}
 
@@ -342,12 +390,23 @@ void Drawing::findAllMinimalCycleBasis()
 		}
 
 		hasValidStartVertex = getCycleStartingVertex(startVertex);
-		k++;
+		iterations++;
+/*
+		if (iterations > 4)
+		{
+			break;
+		}
+		*/
 	}
 
 
+	
+	doEarClipping();
+}
 
-	cout << "Printing VerticesGroups" << endl;
+void Drawing::doEarClipping()
+{
+	//cout << "Printing VerticesGroups" << endl;
 	for (int i = 0; i < polygons.size(); i++)
 	{
 		vector<Vertex> unprocessedPolygonVertices;
@@ -367,17 +426,19 @@ void Drawing::findAllMinimalCycleBasis()
 		earclippingPolygon.initFromUnprocessedVertices(unprocessedPolygonVertices);
 
 		earclippingPolygons.push_back(earclippingPolygon);
+
 	}
 
+
+	/*
 	cout << "############ Printing earclippingPolygons" << endl;
 	for (int i = 0; i < earclippingPolygons.size(); i++)
 	{
-		cout << "		Printing earclippingPolygon" << endl;
-		earclippingPolygons[i].print();
+	cout << "		Printing earclippingPolygon" << endl;
+	earclippingPolygons[i].print();
 	}
+	*/
 }
-
-
 
 
 bool Drawing::alreadyInVector(vector<Edge> toBeRemoved, Edge edge)
@@ -395,9 +456,70 @@ bool Drawing::alreadyInVector(vector<Edge> toBeRemoved, Edge edge)
 
 void Drawing::loadTestData(char* filename)
 {
+	reset();
+
 	mValue content = utl::readJsonFileToMap(filename);
 
-	const mArray& addr_array = content.get_array();
+	const mObject& obj = content.get_obj();
+
+//	loadInputRawPoints(obj);
+//	loadRawPoints(obj);
+	loadVerticesData(obj);
+	
+	for (int i = 0; i < inputPoints.size(); i++)
+	{
+		processNewPoint(inputPoints[i]);
+	}
+
+//	printPointsAndLines();
+
+//	createVerticesAndEdges();
+
+//	verifyLoadTestDataFunction(vertices, edges, newVertices, newEdges);
+}
+
+
+
+void Drawing::loadInputRawPoints(const mObject& obj)
+{
+	const mArray& pointsArray = utl::findValue(obj, "inputPoints").get_array();
+
+	vector<glm::vec2> newPoints;
+	for (int i = 0; i < pointsArray.size(); i++)
+	{
+		const mObject obj = pointsArray[i].get_obj();
+		glm::vec2 newP = deserializePoints(obj);
+		newPoints.push_back(newP);
+	}
+
+	inputPoints = newPoints;
+
+	cout << "points.size " << inputPoints.size() << endl;
+	int a = 1;
+}
+
+
+void Drawing::loadRawPoints(const mObject& obj)
+{
+	const mArray& pointsArray = utl::findValue(obj, "rawPoints").get_array();
+
+	vector<glm::vec2> newPoints;
+	for (int i = 0; i < pointsArray.size(); i++)
+	{
+		const mObject obj = pointsArray[i].get_obj();
+		glm::vec2 newP = deserializePoints(obj);
+		newPoints.push_back(newP);
+	}
+
+	points = newPoints;
+	
+	cout << "points.size " << points.size() << endl;
+	int a = 1;
+}
+
+void Drawing::loadVerticesData(const mObject& obj)
+{
+	const mArray& addr_array = utl::findValue(obj, "vertexData").get_array();
 
 	vector<Vertex> newVertices;
 	vector<Edge> newEdges;
@@ -405,13 +527,11 @@ void Drawing::loadTestData(char* filename)
 	{
 		const mObject obj = addr_array[i].get_obj();
 		Vertex newV = deserializeVertex(obj);
-		newVertices.push_back(newV);		
+		newVertices.push_back(newV);
 	}
 
 	vertices = newVertices;
 	edges = newEdges;
-
-//	verifyLoadTestDataFunction(vertices, edges, newVertices, newEdges);
 }
 
 Vertex Drawing::deserializeVertex(const mObject& obj)
@@ -485,11 +605,53 @@ Object Drawing::serializeVertex(Vertex v)
 	return vertexObj;
 }
 
+Object Drawing::serializePoints(glm::vec2 p)
+{
+	Object pointObj;
+
+	pointObj.push_back(Pair("x", p.x));
+	pointObj.push_back(Pair("y", p.y));
+
+	return pointObj;
+}
+
+
+glm::vec2 Drawing::deserializePoints(const mObject& obj)
+{
+	glm::vec2 point;
+	point.x = utl::findValue(obj, "x").get_real();
+	point.y = utl::findValue(obj, "y").get_real();
+	return point;
+}
+
 
 void Drawing::saveTestData()
 {
 	ofstream myfile;
 	myfile.open("data.txt");
+
+	Object graphObj;
+
+	Array inputPointsArray;
+	for (int i = 0; i < inputPoints.size(); i++)
+	{
+		Object vObj = serializePoints(inputPoints[i]);
+		inputPointsArray.push_back(vObj);
+	}
+
+	graphObj.push_back(Pair("inputPoints", inputPointsArray));
+
+
+
+	Array pointsArray;
+	for (int i = 0; i < points.size(); i++)
+	{
+		Object vObj = serializePoints(points[i]);
+		pointsArray.push_back(vObj);
+	}
+
+	graphObj.push_back(Pair("rawPoints", pointsArray));
+
 
 	Array verticesArray;
 
@@ -499,7 +661,9 @@ void Drawing::saveTestData()
 		verticesArray.push_back(vObj);
 	}
 
-	write(verticesArray, myfile, pretty_print);
+	graphObj.push_back(Pair("vertexData", verticesArray));
+
+	write(graphObj, myfile, pretty_print);
 	myfile.close();
 }
 
@@ -694,6 +858,13 @@ bool Drawing::getClockWiseMostVertex(Vertex vCur, glm::vec2 prevDir, Vertex& out
 	cout << "			prevDir " << prevDir.x << " " << prevDir.y << endl;
 	*/
 
+	// cout << "	vCur " << vCur.id << endl;
+	for (int i = 0; i < vCur.neighbors.size(); i++)
+	{
+		int neighborId = vCur.neighbors[i];
+	// 	cout << "		neighborId " << neighborId << endl;
+	}
+
 	// first found adjacent vertex that is not prev is chosen as V_next
 	for (int i = 1; i < vCur.neighbors.size(); i++)
 	{
@@ -762,8 +933,12 @@ bool Drawing::getCounterClockWiseMostVertex(Vertex vPrev, Vertex vCur, Vertex& o
 	cout << "			curBestDir " << curBestDir.x << " " << curBestDir.y << endl;
 	cout << "			prevDir " << prevDir.x << " " << prevDir.y << endl;
 	*/
-
-
+	// cout << "	vCur " << vCur.id << endl;
+	for (int i = 0; i < vCur.neighbors.size(); i++)
+	{
+		int neighborId = vCur.neighbors[i];
+	// 	cout << "		neighborId " << neighborId << endl;
+	}
 	// first found adjacent vertex that is not prev is chosen as V_next
 	for (int i = 1; i < vCur.neighbors.size(); i++)
 	{		
@@ -852,11 +1027,15 @@ bool Drawing::hasAlreadyThisEdge(int id0, int id1)
 	return false;
 }
 
-int Drawing::getPointIndex(glm::vec2 point)
+// we need to determine the index by both point0 and point1
+// since all of our points are in traversal order
+// point0 might have multiple occurences in the points array
+// we need it to return the one with the point0->point1 traversal
+int Drawing::getPointIndex(glm::vec2 point0, glm::vec2 point1)
 {
-	for (int i = 0; i < points.size(); i++)
+	for (int i = 0; i < points.size() - 1; i++)
 	{
-		if (points[i].x == point.x && points[i].y == point.y)
+		if(utl::equals(points[i], point0) && utl::equals(points[i+1], point1))
 		{
 			return i;
 		}

@@ -18,7 +18,14 @@ int EarclippingPolygon::getNewVertexId()
 void EarclippingPolygon::initFromUnprocessedVertices(vector<Vertex> verticesTraversalList)
 {
 	unordered_set<int> visitedIds;
-	
+
+	cout << endl << endl << ">>>>>>>>>>>>> initFromUnprocessedVertices" << endl;
+	for (int i = 0; i < verticesTraversalList.size(); i++)
+	{
+		Vertex v = verticesTraversalList[i];
+		cout << v.id << " ";
+	}
+	cout << endl;
 
 	for (int i = 0; i < verticesTraversalList.size(); i++)
 	{
@@ -45,7 +52,7 @@ void EarclippingPolygon::initFromUnprocessedVertices(vector<Vertex> verticesTrav
 
 
 	}
-	cout << "vertices.size() " << vertices.size() << endl;
+//	cout << "vertices.size() " << vertices.size() << endl;
 
 	addNeighborsForVertices();
 
@@ -244,9 +251,9 @@ void EarclippingPolygon::triangulate()
 	// verifying initial lists for reflex vertices, and ears
 	findConvexReflexAndEars();
 
-	printConvexVertices();
-	printReflexVertices();
-	printEars();
+//	printConvexVertices();
+//	printReflexVertices();
+//	printEars();
 
 	//	print();
 
@@ -257,12 +264,12 @@ void EarclippingPolygon::triangulate()
 	{
 		while (removed.size() != vertices.size() - 3)
 		{
-			cout << endl << endl << ">>>>>>>>>>> iteration " << i << endl;
+		//	cout << endl << endl << ">>>>>>>>>>> iteration " << i << endl;
 			int id = ears[0];
 			Vertex& curr = vertices[id];
 			ears.erase(ears.begin());
 
-			cout << endl << endl << "	removing " << id << endl;
+		//	cout << endl << endl << "	removing " << id << endl;
 
 			removed.push_back(curr.id);
 
@@ -284,9 +291,9 @@ void EarclippingPolygon::triangulate()
 
 			i++;
 
-			printConvexVertices();
-			printReflexVertices();
-			printEars();
+		//	printConvexVertices();
+		//	printReflexVertices();
+		//	printEars();
 		}
 	}
 
