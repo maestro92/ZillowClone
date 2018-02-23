@@ -418,6 +418,7 @@ class ZillowClone
 		bool isNewPoint(glm::vec2 newPoint);
 		void createPointHandlesForEarclippingPolygons();
 		void createPointHandlesForEarclippingPolygon(EarclippingPolygon polygon);
+		void createLinesForRemovedEdges(Drawing drawingIn);
 		void render();
 
 		void debugDrawing(Drawing drawing);
@@ -444,6 +445,8 @@ class ZillowClone
 		vector< Drawing> drawingList;
 
 		vector<WorldObject> ecTrianglesRenderHandles;
+
+		vector<WorldObject> removedEdges;
 
 		vector<WorldObject> pointRenderHandles;
 		vector<WorldObject> actualRenderHandles;

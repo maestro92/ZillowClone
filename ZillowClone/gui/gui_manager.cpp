@@ -60,13 +60,13 @@ void GUIManager::init(int screenWidth, int screenHeight)
 	m_HPBar = new Bar(xOffset, yOffset, BAR_WIDTH, BAR_HEIGHT, GREEN, "icon_hp.png");
 
 	xOffset = 175;
-	m_armorBar = new Bar(xOffset, yOffset, BAR_WIDTH, BAR_HEIGHT, GRAY, "icon_armor.png");
+	m_armorBar = new Bar(xOffset, yOffset, BAR_WIDTH, BAR_HEIGHT, COLOR_GRAY, "icon_armor.png");
 
 	xOffset = 700;
-	m_ammoBar = new Bar(xOffset, yOffset, BAR_WIDTH, BAR_HEIGHT, GRAY, "icon_ammo.png");
+	m_ammoBar = new Bar(xOffset, yOffset, BAR_WIDTH, BAR_HEIGHT, COLOR_GRAY, "icon_ammo.png");
 
 	xOffset = 0; yOffset = 0;
-	m_fpsLabel = new Label("90", xOffset, yOffset, 50, 50, GRAY);
+	m_fpsLabel = new Label("90", xOffset, yOffset, 50, 50, COLOR_GRAY);
 
 	float width = 200;
 	float height = 50;

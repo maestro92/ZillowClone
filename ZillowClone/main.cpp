@@ -33,6 +33,9 @@ float CAMERA_ZOOM_DELTA = 2;
 
 glm::vec3 oldPos;
 
+
+float REMOVED_EDGE_LINE_WIDTH = 0.1;
+
 /*
 RakNet Ogre tutorial
 http://classes.cs.kent.edu/gpg/trac/wiki/cmarshall
@@ -192,16 +195,17 @@ void ZillowClone::init()
 	SDL_WM_SetCaption("ZillowClone", NULL);
 
 
-	loadData = true;
+	loadData = false;
 
 	if (loadData)
 	{
 		curDrawing.saveLatest = false;
-		curDrawing.loadTestData("rand_shape0.txt");
+		curDrawing.loadTestData("rand_shape1.txt");
 
 		createRenderHandleForLoadedTestData(curDrawing);
 		debugDrawing(curDrawing);
 		curDrawing.postProcess();
+		createLinesForRemovedEdges(curDrawing);
 		createPointHandlesForEarclippingPolygons();
 	}
 	else
@@ -496,10 +500,26 @@ void ZillowClone::onMouseBtnUp()
 		curDrawing.postProcess();
 		debugDrawing(curDrawing);
 
-		createPointHandlesForEarclippingPolygons();
+//		createPointHandlesForEarclippingPolygons();
 
 	//	curDrawing.reset();
 	//	drawingList.push_back(curDrawing);
+	}
+}
+
+void ZillowClone::createLinesForRemovedEdges(Drawing drawingIn)
+{
+	removedEdges.clear();
+	for (int i = 0; i < drawingIn.m_removedEdges.size(); i++)
+	{
+		int id0 = drawingIn.m_removedEdges[i].id0;
+		int id1 = drawingIn.m_removedEdges[i].id1;
+
+		Vertex v0 = drawingIn.vertices[id0];
+		Vertex v1 = drawingIn.vertices[id1];
+		
+		WorldObject obj = constructLine(v0.pos, v1.pos, REMOVED_EDGE_LINE_WIDTH);
+		removedEdges.push_back(obj);
 	}
 }
 
@@ -607,8 +627,8 @@ void ZillowClone::createPointHandlesForEarclippingPolygon(EarclippingPolygon ecP
 void ZillowClone::debugDrawing(Drawing drawing)
 {
 	m_gui.removeDebugLabels();
-	float size = 600 / m_cameraZoom;
-
+ 	float size = 300 / m_cameraZoom;
+//	float size = m_cameraZoom * 0.8;
 //	float size = 300 / m_cameraZoom;
 
 	for (int i = 0; i < drawing.vertices.size(); i++)
@@ -835,6 +855,13 @@ void ZillowClone::update()
 						updateCamera();
 
 						break;
+
+					case SDLK_t:
+
+						curDrawing.doEarClipping();
+						createPointHandlesForEarclippingPolygons();
+						break;
+
 					case SDLK_w:
 						m_cameraZoom -= CAMERA_ZOOM_DELTA;
 						updateCamera();
@@ -1036,6 +1063,15 @@ void ZillowClone::render()
 			WorldObject obj = ecTrianglesRenderHandles[i];
 			obj.renderGroup(m_pipeline, p_renderer);
 		}
+
+
+		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_GRAY);
+		for (int i = 0; i < removedEdges.size(); i++)
+		{
+			WorldObject obj = removedEdges[i];
+			obj.renderGroup(m_pipeline, p_renderer);
+		}
+
 
 
 	p_renderer->disableShader();

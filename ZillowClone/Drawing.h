@@ -115,7 +115,7 @@ class Drawing
 		void createVerticesAndEdges();
 		void findAllMinimalCycleBasis();
 
-
+		void printPolygons();
 
 		int getNumVertices()
 		{
@@ -236,6 +236,9 @@ class Drawing
 
 		vector<Vertex> vertices;
 		vector<Edge> edges;
+
+
+		vector<Edge> m_removedEdges;
 
 		vector<Vertex> backupVertices;
 		vector<Edge> backupEdges;

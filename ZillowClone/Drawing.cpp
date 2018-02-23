@@ -297,7 +297,24 @@ void Drawing::findAllMinimalCycleBasis()
 		hasValidStartVertex = false;
 		iterations = 0;
 
-	//	cout << "		Starting new cycle with " << startVertex.id << endl;
+		//	cout << "		Starting new cycle with " << startVertex.id << endl;
+/*
+		if (startVertex.id == 4)
+		{
+			vertices[4].print();
+		}
+		*/
+		/*
+		if (startVertex.id == 93)
+		{
+			break;
+		}
+			
+		if (startVertex.id == 96)
+		{
+			vertices[96].print();
+		}
+		*/
 
 		cycleEdgeList.clear();
 		while (vCurr != startVertex || started == false)
@@ -306,7 +323,12 @@ void Drawing::findAllMinimalCycleBasis()
 			if (started == false)
 			{
 				hasValidStartVertex = getClockWiseMostVertex(startVertex, supportLine, vNext);
-			//	cout << "startVertex " << startVertex.id << endl;
+				if (startVertex.id == 96)
+				{
+					cout << "vNext " << vNext.id << endl;
+				}
+
+
 				started = true;
 			}
 			else
@@ -336,13 +358,13 @@ void Drawing::findAllMinimalCycleBasis()
 
 		vector<int> tempList;
 		for (int i = 0; i < cycleEdgeList.size(); i++)
-		{			
+		{
 			if (i == 0)
 			{
 				tempList.push_back(cycleEdgeList[i].id0);
 				tempList.push_back(cycleEdgeList[i].id1);
 			}
-			else			
+			else
 			{
 				tempList.push_back(cycleEdgeList[i].id1);
 			}
@@ -353,12 +375,23 @@ void Drawing::findAllMinimalCycleBasis()
 
 		// first to CCW traversal to remove edges
 		vector<Edge> toBeRemoved;
-	//	cout << "CCW traversal" << endl;
+
+		/*
+		if (startVertex.id == 16)
+		{
+			cout << "CCW traversal" << endl;
+		}
+		*/
 		// remove removable edges
 		for (int i = 0; i < cycleEdgeList.size(); i++)
 		{
 			Vertex v = vertices[cycleEdgeList[i].id1];
-		//	cout << "	removing edge " << cycleEdgeList[i].id0 << " " << cycleEdgeList[i].id1 << endl;
+			/*
+			if (startVertex.id == 16)
+			{
+				cout << "	removing edge " << cycleEdgeList[i].id0 << " " << cycleEdgeList[i].id1 << endl;
+			}
+			*/
 			toBeRemoved.push_back(cycleEdgeList[i]);
 
 			if (v.neighbors.size() > 2)
@@ -367,14 +400,24 @@ void Drawing::findAllMinimalCycleBasis()
 			}
 		}
 
-		// cout << "CW traversal" << endl;
+		/*
+		if (startVertex.id == 16)
+		{
+			cout << "CW traversal" << endl;
+		}
+		*/
 		// then to CW traversal to remove edges
 		for (int i = cycleEdgeList.size() - 1; i >= 0; i--)
 		{
 			Vertex v = vertices[cycleEdgeList[i].id0];
 			if (alreadyInVector(toBeRemoved, cycleEdgeList[i]) == false)
 			{
-			//	cout << "	removing edge " << cycleEdgeList[i].id0 << " " << cycleEdgeList[i].id1 << endl;
+			/*
+				if (startVertex.id == 16)
+				{
+					cout << "	removing edge " << cycleEdgeList[i].id0 << " " << cycleEdgeList[i].id1 << endl;
+				}
+				*/
 				toBeRemoved.push_back(cycleEdgeList[i]);
 			}
 
@@ -384,9 +427,32 @@ void Drawing::findAllMinimalCycleBasis()
 			}			
 		}
 
+
 		for (int i = 0; i < toBeRemoved.size(); i++)
 		{
 			removeEdge(toBeRemoved[i]);
+			m_removedEdges.push_back(toBeRemoved[i]);
+		}
+		toBeRemoved.clear();
+
+		// also need to filaments
+		// remove nodes that only has one neighbor. this occurs when you gradually remove edges during your findingMinimalCycles steps
+		// this needs to happen after removing the cycleEdges
+		for (int i = 0; i < vertices.size(); i++)
+		{
+			if (vertices[i].neighbors.size() == 1)
+			{
+				Edge edge;
+				edge.id0 = vertices[i].id;
+				edge.id1 = vertices[i].neighbors[0];
+				toBeRemoved.push_back(edge);
+			}
+		}
+
+		for (int i = 0; i < toBeRemoved.size(); i++)
+		{
+			removeEdge(toBeRemoved[i]);
+			m_removedEdges.push_back(toBeRemoved[i]);
 		}
 
 		hasValidStartVertex = getCycleStartingVertex(startVertex);
@@ -399,9 +465,33 @@ void Drawing::findAllMinimalCycleBasis()
 		*/
 	}
 
-
+	printPolygons();
 	
-	doEarClipping();
+//	doEarClipping();
+}
+
+
+void Drawing::printPolygons()
+{
+	for (int i = 0; i < polygons.size(); i++)
+	{
+		bool flag = false;
+		for (int j = 0; j < polygons[i].size(); j++)
+		{
+			if (polygons[i][j] == 20)
+			{
+				flag = true;
+			}
+			cout << polygons[i][j] << " ";
+		}
+		if (flag == true)
+		{
+			cout << "<<<<<<<<<<<<<<<<<<";
+		}
+
+		cout << endl;
+	}
+
 }
 
 void Drawing::doEarClipping()
@@ -413,7 +503,6 @@ void Drawing::doEarClipping()
 
 		for (int j = 0; j < polygons[i].size(); j++)
 		{
-			cout << polygons[i][j] << " ";
 			int id = polygons[i][j];
 			Vertex newV = Vertex(vertices[id]);
 
@@ -849,7 +938,7 @@ bool Drawing::getClockWiseMostVertex(Vertex vCur, glm::vec2 prevDir, Vertex& out
 	Vertex vNext = vertices[vCur.neighbors[0]];
 	glm::vec2 curBestDir = vNext.pos - vCur.pos;
 
-	bool curBestDirIsCWFromPrevDirFlag = isCWFromOrColinear(curBestDir, prevDir);
+	bool curBestDirIsCWFromPrevDirFlag = isCWFrom(curBestDir, prevDir);
 	int neighborId2 = vCur.neighbors[0];
 	/*
 	cout << "neighborId " << neighborId2 << endl;
@@ -881,20 +970,39 @@ bool Drawing::getClockWiseMostVertex(Vertex vCur, glm::vec2 prevDir, Vertex& out
 		*/
 		if (curBestDirIsCWFromPrevDirFlag)
 		{
+			/*
+			if (vCur.id == 96)
+			{
+				cout << "in here " << newDir.x << " " << newDir.y << endl;
+				cout << "in here " << curBestDir.x << " " << curBestDir.y << endl;
+
+
+				cout << "isCWFrom(newDir, prevDir) " << isCWFrom(newDir, prevDir) << endl;
+				cout << "isCWFrom(newDir, curBestDir) " << isCWFrom(newDir, curBestDir) << endl;
+			}
+			*/
+
 			if (isCWFrom(newDir, prevDir) && isCWFrom(newDir, curBestDir))
 			{
 				vNext = vNeighbor;
 				curBestDir = newDir;
-				curBestDirIsCWFromPrevDirFlag = isCWFromOrColinear(curBestDir, prevDir);
+				curBestDirIsCWFromPrevDirFlag = isCWFrom(curBestDir, prevDir);
 			}
 		}
 		else
 		{
+			/*
+			if (vCur.id == 96)
+			{
+				cout << "in here2 " << newDir.x << " " << newDir.y << endl;
+			}
+			*/
+
 			if (isCWFrom(newDir, prevDir) || isCWFrom(newDir, curBestDir))
 			{
 				vNext = vNeighbor;
 				curBestDir = newDir;
-				curBestDirIsCWFromPrevDirFlag = isCWFromOrColinear(curBestDir, prevDir);
+				curBestDirIsCWFromPrevDirFlag = isCWFrom(curBestDir, prevDir);
 			}
 		}
 	}
@@ -987,13 +1095,15 @@ bool Drawing::getCounterClockWiseMostVertex(Vertex vPrev, Vertex vCur, Vertex& o
 void Drawing::postProcess()
 {
 	createVerticesAndEdges();
-
+	printVerticesAndEdges();
 	cout << " ############### postProcess" << endl;
 
 	if (saveLatest)
 	{
 		saveTestData();
 	}
+
+//	printPolygons();
 
 	findAllMinimalCycleBasis();
 }

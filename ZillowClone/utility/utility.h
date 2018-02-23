@@ -73,7 +73,7 @@ using namespace std;
 
 
 #define DARK_GRAY   glm::vec3(0.25,0.25,0.25)
-#define GRAY        glm::vec3(0.5,0.5,0.5)
+#define COLOR_GRAY        glm::vec3(0.5,0.5,0.5)
 #define LIGHT_GRAY  glm::vec3(0.75, 0.75, 0.75)
 #define COLOR_WHITE       glm::vec3(1.0,1.0,1.0)
 
