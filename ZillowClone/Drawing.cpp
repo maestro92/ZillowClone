@@ -305,11 +305,12 @@ void Drawing::findAllMinimalCycleBasis()
 		}
 		*/
 		/*
-		if (startVertex.id == 93)
+		if (startVertex.id == 0)
 		{
 			break;
 		}
-			
+		*/
+		/*
 		if (startVertex.id == 96)
 		{
 			vertices[96].print();
@@ -438,6 +439,7 @@ void Drawing::findAllMinimalCycleBasis()
 		// also need to filaments
 		// remove nodes that only has one neighbor. this occurs when you gradually remove edges during your findingMinimalCycles steps
 		// this needs to happen after removing the cycleEdges
+		
 		for (int i = 0; i < vertices.size(); i++)
 		{
 			if (vertices[i].neighbors.size() == 1)
@@ -449,11 +451,33 @@ void Drawing::findAllMinimalCycleBasis()
 			}
 		}
 
+		/*
 		for (int i = 0; i < toBeRemoved.size(); i++)
 		{
 			removeEdge(toBeRemoved[i]);
 			m_removedEdges.push_back(toBeRemoved[i]);
 		}
+		*/
+		// sometimes when you remove one edge, it will make another vertex a filaments
+		// so we have to keep on scanning until there are no more filaments
+		while (toBeRemoved.size() > 0)
+		{
+			int id0 = toBeRemoved[0].id1;
+			int id1 = toBeRemoved[0].id1;
+			removeEdge(toBeRemoved[0]);
+			m_removedEdges.push_back(toBeRemoved[0]);
+			toBeRemoved.erase(toBeRemoved.begin());
+
+			// push the new one 
+			if (vertices[id1].neighbors.size() == 1)
+			{
+				Edge edge;
+				edge.id0 = vertices[id1].id;
+				edge.id1 = vertices[id1].neighbors[0];
+				toBeRemoved.push_back(edge);
+			}
+		}
+
 
 		hasValidStartVertex = getCycleStartingVertex(startVertex);
 		iterations++;

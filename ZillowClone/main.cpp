@@ -200,7 +200,7 @@ void ZillowClone::init()
 	if (loadData)
 	{
 		curDrawing.saveLatest = false;
-		curDrawing.loadTestData("rand_shape1.txt");
+		curDrawing.loadTestData("rand_shape6.txt");
 
 		createRenderHandleForLoadedTestData(curDrawing);
 		debugDrawing(curDrawing);
