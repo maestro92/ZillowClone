@@ -419,12 +419,17 @@ class ZillowClone
 		void createPointHandlesForEarclippingPolygons();
 		void createPointHandlesForEarclippingPolygon(EarclippingPolygon polygon);
 		void createLinesForRemovedEdges(Drawing drawingIn);
+		void createLinesForInsideOutsidePolygons(Drawing drawingIn);
+		void createLinesForInsideOutsidePolygon(vector<Vertex> polygons, bool isInside);
 		void render();
 
 		void debugDrawing(Drawing drawing);
 
 		void GetTimeProfilerAverages();
 
+		void createModelsForDrawing(Drawing drawingIn);
+		void createModelsForPolyginsInDrawing(EarclippingPolygon ecPolygon, bool isInside,
+			vector<VertexData>& vertices, vector<unsigned int>& indices);
 		void processCurrentDrawnLine();
 
 		WorldObject constructPoint(glm::vec2 p, float width) const;
@@ -444,14 +449,19 @@ class ZillowClone
 		Drawing curDrawing;
 		vector< Drawing> drawingList;
 
-		vector<WorldObject> ecTrianglesRenderHandles;
+		vector<WorldObject> ecTriangles;
 
 		vector<WorldObject> removedEdges;
 
-		vector<WorldObject> pointRenderHandles;
-		vector<WorldObject> actualRenderHandles;
+		vector<WorldObject> polygonLines;
+		vector<WorldObject> polygonPoints;
 
 		vector<WorldObject> lineMarkers;
+
+		vector<WorldObject> insidePolygonLines;
+		vector<WorldObject> outsidePolygonLines;
+
+		WorldObject drawingWorldObject;
 
 		long long getCurrentTimeMillis();
 };

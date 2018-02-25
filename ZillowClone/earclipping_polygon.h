@@ -50,6 +50,8 @@ class EarclippingPolygon
 		unordered_map<int, int> debugMap;
 
 		vector<vector<Vertex>> triangles;
+
+
 };
 
 

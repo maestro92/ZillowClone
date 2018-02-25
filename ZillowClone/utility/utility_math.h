@@ -26,6 +26,8 @@ namespace utl
 	
 	bool sameSign(float a, float b);
 
+	int isPointLeftOfVector(glm::vec2 v0, glm::vec2 v1, glm::vec2 poing);
+
 	float crossProduct2D(glm::vec2 a, glm::vec2 b);
 
 	bool chance(float percent);

@@ -22,6 +22,11 @@ string utl::vec2ToStr(glm::vec2 value)
 	return buff.str();
 }
 
+int utl::isPointLeftOfVector(glm::vec2 v0, glm::vec2 v1, glm::vec2 point)
+{
+	return ((v1.x - v0.x) * (point.y - v0.y) - (point.x - v0.x) * (v1.y - v0.y));
+}
+
 
 int utl::randInt(int min, int max)
 {

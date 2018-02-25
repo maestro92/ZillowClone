@@ -71,7 +71,7 @@ void GUIManager::init(int screenWidth, int screenHeight)
 	float width = 200;
 	float height = 50;
 	xOffset = utl::SCREEN_WIDTH - width; yOffset = 0;
-	m_drawingModeLabel = new Label("Off", xOffset, yOffset, width, height, BLUE);
+	m_drawingModeLabel = new Label("Off", xOffset, yOffset, width, height, COLOR_BLUE);
 
 
 	int aimWidth = 20;

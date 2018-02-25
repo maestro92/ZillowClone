@@ -62,6 +62,7 @@ void EarclippingPolygon::initFromUnprocessedVertices(vector<Vertex> verticesTrav
 }
 
 
+
 void EarclippingPolygon::addNeighborsForVertices()
 {
 	// now add the neighbors

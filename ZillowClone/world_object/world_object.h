@@ -73,6 +73,7 @@ class WorldObject
 		glm::vec3 m_zAxis;
         inline void setRotation(glm::mat4 rot);
 
+		bool canRender();
 		bool shouldRender();
 
 		void renderSingle(Pipeline& p, Renderer* r);

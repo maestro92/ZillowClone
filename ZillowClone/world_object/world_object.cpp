@@ -57,7 +57,10 @@ void WorldObject::print_uint8_t(uint8_t n)
 	putchar('\n');
 }
 
-
+bool WorldObject::canRender()
+{
+	return m_model != NULL;
+}
 
 
 

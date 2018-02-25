@@ -305,7 +305,7 @@ void Drawing::findAllMinimalCycleBasis()
 		}
 		*/
 		/*
-		if (startVertex.id == 0)
+		if (startVertex.id == 10)
 		{
 			break;
 		}
@@ -515,16 +515,32 @@ void Drawing::printPolygons()
 
 		cout << endl;
 	}
-
 }
+
+vector<Vertex> Drawing::getVerticesByIds(vector<int> vertexIds)
+{
+	vector<Vertex> temp;
+
+	for (int j = 0; j < vertexIds.size(); j++)
+	{
+		int id = vertexIds[j];
+		Vertex newV = Vertex(vertices[id]);
+
+		newV.resetNeighbors();
+		temp.push_back(newV);
+	}
+	return temp;
+}
+
 
 void Drawing::doEarClipping()
 {
 	//cout << "Printing VerticesGroups" << endl;
 	for (int i = 0; i < polygons.size(); i++)
 	{
-		vector<Vertex> unprocessedPolygonVertices;
+		vector<Vertex> unprocessedPolygonVertices = getVerticesByIds(polygons[i]);
 
+		/*
 		for (int j = 0; j < polygons[i].size(); j++)
 		{
 			int id = polygons[i][j];
@@ -534,6 +550,7 @@ void Drawing::doEarClipping()
 			unprocessedPolygonVertices.push_back(newV);
 		}
 		cout << endl;
+		*/
 
 		EarclippingPolygon earclippingPolygon;
 		earclippingPolygon.initFromUnprocessedVertices(unprocessedPolygonVertices);
@@ -1177,6 +1194,69 @@ int Drawing::getPointIndex(glm::vec2 point0, glm::vec2 point1)
 
 	return -1;
 }
+
+
+void Drawing::determinePolygonsInsideOutside()
+{
+	polygonInsideFlags.clear();
+	for (int i = 0; i < polygons.size(); i++)
+	{
+	//	determinePolygonInsideOutside(polygons[i]);
+	
+		// use the first triangle from your earclippingPolygon
+		vector<Vertex> firstTriangle = earclippingPolygons[i].triangles[0];
+		glm::vec2 point = findPointInsideOfTriangle(firstTriangle);
+
+		bool isInside = windingNumberPointPolygon(point);
+		polygonInsideFlags.push_back(isInside);
+	}
+}
+
+
+bool Drawing::windingNumberPointPolygon(glm::vec2 point)
+{
+	int windingNumber = 0;
+	for (int i = 0; i < edges.size(); i++)
+	{
+		Vertex v0 = vertices[edges[i].id0];
+		Vertex v1 = vertices[edges[i].id1];
+
+		// an upward crossing
+		if (v0.pos.y <= point.y)
+		{
+			if (v1.pos.y > point.y)
+			{
+				if (utl::isPointLeftOfVector(v0.pos, v1.pos, point) > 0)
+				{
+					windingNumber++;
+				}
+			}
+		}
+		else
+		{
+			if (v1.pos.y <= point.y)
+			{
+				if (utl::isPointLeftOfVector(v0.pos, v1.pos, point) < 0)
+				{
+					windingNumber--;
+				}
+			}
+		}
+	}
+
+	return windingNumber;
+}
+
+
+
+glm::vec2 Drawing::findPointInsideOfTriangle(vector<Vertex> triangle)
+{
+	// just use the centroid
+	glm::vec2 centroid = triangle[0].pos + triangle[1].pos + triangle[2].pos;
+	centroid = centroid / 3.0f;
+	return centroid;
+}
+
 
 
 

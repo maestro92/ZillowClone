@@ -200,7 +200,7 @@ void ZillowClone::init()
 	if (loadData)
 	{
 		curDrawing.saveLatest = false;
-		curDrawing.loadTestData("rand_shape6.txt");
+		curDrawing.loadTestData("rand_shape7.txt");
 
 		createRenderHandleForLoadedTestData(curDrawing);
 		debugDrawing(curDrawing);
@@ -277,7 +277,7 @@ void ZillowClone::initObjects()
 
 		obj.setScale(1);
 
-		actualRenderHandles.push_back(obj);
+		polygonPoints.push_back(obj);
 	};
 }
 
@@ -525,8 +525,8 @@ void ZillowClone::createLinesForRemovedEdges(Drawing drawingIn)
 
 void ZillowClone::createRenderHandleForLoadedTestData(Drawing drawingIn)
 {
-	pointRenderHandles.clear();
-	actualRenderHandles.clear();
+	polygonLines.clear();
+	polygonPoints.clear();
 
 	glm::vec2 lastPoint;
 	glm::vec2 worldPoint;
@@ -539,10 +539,13 @@ void ZillowClone::createRenderHandleForLoadedTestData(Drawing drawingIn)
 	{
 		if (i == 0)
 		{
+/*
 			worldPoint = temp[i].pos;
 
 			WorldObject obj = constructPoint(worldPoint, width);
-			pointRenderHandles.push_back(obj);
+			polygonLines.push_back(obj);
+	*/
+			continue;
 		}
 		else
 		{
@@ -550,11 +553,11 @@ void ZillowClone::createRenderHandleForLoadedTestData(Drawing drawingIn)
 			worldPoint = temp[i].pos;
 
 			WorldObject obj = constructLine(lastPoint, worldPoint, width);
-			pointRenderHandles.push_back(obj);
+			polygonLines.push_back(obj);
 		}
 
 		WorldObject obj = constructPoint(worldPoint, width);
-		actualRenderHandles.push_back(obj);
+		polygonPoints.push_back(obj);
 	}
 }
 
@@ -599,7 +602,7 @@ WorldObject ZillowClone::constructLine(glm::vec2 p0, glm::vec2 p1, float width) 
 
 void ZillowClone::createPointHandlesForEarclippingPolygons()
 {
-	ecTrianglesRenderHandles.clear();
+	ecTriangles.clear();
 	for (int i = 0; i < curDrawing.earclippingPolygons.size(); i++)
 	{
 		createPointHandlesForEarclippingPolygon(curDrawing.earclippingPolygons[i]);
@@ -616,9 +619,51 @@ void ZillowClone::createPointHandlesForEarclippingPolygon(EarclippingPolygon ecP
 		WorldObject line0 = constructLine(triangle[0].pos, triangle[1].pos, earClippingLineWidth);
 		WorldObject line1 = constructLine(triangle[0].pos, triangle[2].pos, earClippingLineWidth);
 		WorldObject line2 = constructLine(triangle[1].pos, triangle[2].pos, earClippingLineWidth);
-		ecTrianglesRenderHandles.push_back(line0);
-		ecTrianglesRenderHandles.push_back(line1);
-		ecTrianglesRenderHandles.push_back(line2);
+		ecTriangles.push_back(line0);
+		ecTriangles.push_back(line1);
+		ecTriangles.push_back(line2);
+	}
+}
+
+
+
+void ZillowClone::createLinesForInsideOutsidePolygons(Drawing drawingIn)
+{
+	insidePolygonLines.clear();
+	outsidePolygonLines.clear();
+
+	for (int i = 0; i < drawingIn.polygons.size(); i++)
+	{
+		vector<Vertex> vertices = drawingIn.getVerticesByIds(drawingIn.polygons[i]);
+		createLinesForInsideOutsidePolygon(vertices, drawingIn.polygonInsideFlags[i]);
+	}
+}
+
+
+void ZillowClone::createLinesForInsideOutsidePolygon(vector<Vertex> polygons, bool isInside)
+{
+	for (int i = 0; i < polygons.size(); i++)
+	{
+		if (i == 0)
+		{
+
+		}
+		else
+		{
+			Vertex v0 = polygons[i - 1];
+			Vertex v1 = polygons[i];
+			
+			WorldObject line = constructLine(v0.pos, v1.pos, 0.5f);
+
+			if (isInside)
+			{
+				insidePolygonLines.push_back(line);
+			}
+			else
+			{
+				outsidePolygonLines.push_back(line);
+			}
+		}
 	}
 }
 
@@ -686,7 +731,7 @@ void ZillowClone::addPoint(glm::vec2 worldPoint)
 		obj.setRotation(glm::rotate(angle, 0.0f , 0.0f, 1.0f));
 
 		obj.setScale(scale);
-		pointRenderHandles.push_back(obj);
+		polygonLines.push_back(obj);
 	}
 	else
 	{
@@ -697,7 +742,7 @@ void ZillowClone::addPoint(glm::vec2 worldPoint)
 		obj.setPosition(glm::vec3(worldPoint.x, worldPoint.y, 0));
 
 		obj.setScale(width);
-		pointRenderHandles.push_back(obj);
+		polygonLines.push_back(obj);
 	}
 	
 	{
@@ -706,7 +751,7 @@ void ZillowClone::addPoint(glm::vec2 worldPoint)
 		obj.setPosition(glm::vec3(worldPoint.x, worldPoint.y, 0));
 
 		obj.setScale(width);
-		actualRenderHandles.push_back(obj);
+		polygonPoints.push_back(obj);
 	}
 	
 }
@@ -823,7 +868,7 @@ void ZillowClone::onExistDrawingMode()
 {
 	curDrawing.reset();
 	drawingList.clear();
-	pointRenderHandles.clear();
+	polygonLines.clear();
 }
 
 void ZillowClone::update()
@@ -857,10 +902,16 @@ void ZillowClone::update()
 						break;
 
 					case SDLK_t:
-
 						curDrawing.doEarClipping();
 						createPointHandlesForEarclippingPolygons();
 						break;
+
+					case SDLK_y:
+						curDrawing.determinePolygonsInsideOutside();
+						createLinesForInsideOutsidePolygons(curDrawing);
+						createModelsForDrawing(curDrawing);
+						break;
+
 
 					case SDLK_w:
 						m_cameraZoom -= CAMERA_ZOOM_DELTA;
@@ -1015,20 +1066,29 @@ void ZillowClone::render()
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
 
-
+	/*
 	// Rendering wireframes
 	p_renderer = &global.rendererMgr->r_fullVertexColor;
 	p_renderer->enableShader();
 		o_worldAxis.renderGroup(m_pipeline, p_renderer);
 	p_renderer->disableShader();
-	
+	*/
+
+
+	// Rendering wireframes
+	p_renderer = &global.rendererMgr->r_fullVertexColor;
+	p_renderer->enableShader();
+	if (drawingWorldObject.canRender())
+	{
+		drawingWorldObject.renderGroup(m_pipeline, p_renderer);
+	}
+	p_renderer->disableShader();
+
+
 
 	// Rendering wireframes
 	p_renderer = &global.rendererMgr->r_fullColor;
-
 	p_renderer->enableShader();
-
-
 
 		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_RED);
 		for (int i = 0; i < lineMarkers.size(); i++)
@@ -1038,29 +1098,27 @@ void ZillowClone::render()
 		}
 
 
-		p_renderer->setData(R_FULL_COLOR::u_color, BLUE);
+		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_BLUE);
 
-		for (int i = 0; i < pointRenderHandles.size(); i++)
+		for (int i = 0; i < polygonLines.size(); i++)
 		{
-			WorldObject obj = pointRenderHandles[i];
+			WorldObject obj = polygonLines[i];
 			obj.renderGroup(m_pipeline, p_renderer);
 		}
-
-
 
 
 		p_renderer->setData(R_FULL_COLOR::u_color, GREEN);
-		for (int i = 0; i < actualRenderHandles.size(); i++)
+		for (int i = 0; i < polygonPoints.size(); i++)
 		{
-			WorldObject obj = actualRenderHandles[i];
+			WorldObject obj = polygonPoints[i];
 			obj.renderGroup(m_pipeline, p_renderer);
 		}
 
-
+		
 		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_RED);
-		for (int i = 0; i < ecTrianglesRenderHandles.size(); i++)
+		for (int i = 0; i < ecTriangles.size(); i++)
 		{
-			WorldObject obj = ecTrianglesRenderHandles[i];
+			WorldObject obj = ecTriangles[i];
 			obj.renderGroup(m_pipeline, p_renderer);
 		}
 
@@ -1072,9 +1130,25 @@ void ZillowClone::render()
 			obj.renderGroup(m_pipeline, p_renderer);
 		}
 
+		
+		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_GRAY);
+		for (int i = 0; i < insidePolygonLines.size(); i++)
+		{
+			WorldObject obj = insidePolygonLines[i];
+			obj.renderGroup(m_pipeline, p_renderer);
+		}
 
 
+		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_BLUE);
+		for (int i = 0; i < outsidePolygonLines.size(); i++)
+		{
+			WorldObject obj = outsidePolygonLines[i];
+			obj.renderGroup(m_pipeline, p_renderer);
+		}
+				
 	p_renderer->disableShader();
+
+
 
 
 
@@ -1120,6 +1194,72 @@ long long ZillowClone::getCurrentTimeMillis()
 #define MAX_CLIENTS 10
 #define SERVER_PORT 60000
 
+
+
+void ZillowClone::createModelsForDrawing(Drawing drawingIn)
+{
+	Model* model = new Model();
+
+	std::vector<VertexData> vertices;
+	std::vector<unsigned int> indices;
+	int counter = 0;
+
+	float earClippingLineWidth = 0.3f;
+	for (int i = 0; i < drawingIn.earclippingPolygons.size(); i++)
+	{
+		bool isInside = drawingIn.polygonInsideFlags[i];
+		createModelsForPolyginsInDrawing(drawingIn.earclippingPolygons[i], isInside, vertices, indices);
+	}
+
+	Mesh m(vertices, indices);
+	model->m_meshes.push_back(m);
+
+	drawingWorldObject.setModel(model);
+}
+
+
+void ZillowClone::createModelsForPolyginsInDrawing(EarclippingPolygon ecPolygon, bool isInside, 
+													vector<VertexData>& vertices, vector<unsigned int>& indices)
+{
+	for (int i = 0; i < ecPolygon.triangles.size(); i++)
+	{
+		vector<Vertex> triangle = ecPolygon.triangles[i];
+		Vertex v0 = triangle[0];
+		Vertex v1 = triangle[1];
+		Vertex v2 = triangle[2];
+
+		VertexData tmp;
+
+		/*
+		cout << "v0 " << v0.pos.x << " " << v0.pos.y << endl;
+		cout << "v1 " << v1.pos.x << " " << v1.pos.y << endl;
+		cout << "v2 " << v2.pos.x << " " << v2.pos.y << endl;
+		*/
+
+		tmp.m_position = glm::vec3(v0.pos.x, v0.pos.y, 0);
+		tmp.m_color = isInside ? COLOR_LIGHT_BLUE : COLOR_WHITE;
+		vertices.push_back(tmp);
+		indices.push_back(indices.size());
+
+		tmp.m_position = glm::vec3(v1.pos.x, v1.pos.y, 0);
+		tmp.m_color = isInside ? COLOR_LIGHT_BLUE : COLOR_WHITE;
+		vertices.push_back(tmp);
+		indices.push_back(indices.size());
+
+		tmp.m_position = glm::vec3(v2.pos.x, v2.pos.y, 0);
+		tmp.m_color = isInside ? COLOR_LIGHT_BLUE : COLOR_WHITE;
+		vertices.push_back(tmp);
+		indices.push_back(indices.size());
+	}
+
+	/*
+	for (int i = 0; i < indices.size(); i++)
+	{
+		cout << indices[i] << " ";
+	}
+	cout << endl;
+	*/
+}
 
 int main(int argc, char *argv[])
 {

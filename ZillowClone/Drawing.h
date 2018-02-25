@@ -197,6 +197,9 @@ class Drawing
 
 		Object serializeVertex(Vertex v);
 		Vertex deserializeVertex(const mObject& obj);
+		void determinePolygonsInsideOutside();
+		bool windingNumberPointPolygon(glm::vec2 point);
+		vector<Vertex> getVerticesByIds(vector<int> vertexIds);
 
 	private:
 
@@ -205,10 +208,14 @@ class Drawing
 		bool alreadyInVector(vector<Edge> toBeRemoved, Edge edge);
 
 		void backupVerticesAndEdges();
+	
 
 		int hasAlreadyProcessedThisPoint(glm::vec2 point);
 
 		int getPointIndex(glm::vec2 point0, glm::vec2 point1);
+
+		glm::vec2 findPointInsideOfTriangle(vector<Vertex> triangle);
+
 
 		void triangulateClosedLoops();
 		void findPointsInClosedLoops();
@@ -225,12 +232,14 @@ class Drawing
 		vector<Line> lines;
 
 
+	
 
 	public:
 		std::function<void(glm::vec2) > onAddIntersection;
 
-		// the list of vertices that forms a polygon in your drawing
+		// the list of vertices that forms a polygon/closed loop in your drawing
 		vector< vector<int>> polygons;
+		vector<bool> polygonInsideFlags;
 
 		vector<EarclippingPolygon> earclippingPolygons;
 
