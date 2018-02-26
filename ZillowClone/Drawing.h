@@ -231,8 +231,8 @@ class Drawing
 		vector<glm::vec2> points;
 		vector<Line> lines;
 
+		void nestedSubgraphPostprocess(int root, vector<int> closedWalk, int start, int end);
 
-	
 
 	public:
 		std::function<void(glm::vec2) > onAddIntersection;

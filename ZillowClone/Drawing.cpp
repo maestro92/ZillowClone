@@ -297,8 +297,9 @@ void Drawing::findAllMinimalCycleBasis()
 		hasValidStartVertex = false;
 		iterations = 0;
 
-		//	cout << "		Starting new cycle with " << startVertex.id << endl;
 /*
+		cout << "		Starting new cycle with " << startVertex.id << endl;
+
 		if (startVertex.id == 4)
 		{
 			vertices[4].print();
@@ -318,18 +319,23 @@ void Drawing::findAllMinimalCycleBasis()
 		*/
 
 		cycleEdgeList.clear();
+
+
+
+		vector<int> closedWalk;
+
 		while (vCurr != startVertex || started == false)
 		{
 			Vertex vNext;
 			if (started == false)
 			{
 				hasValidStartVertex = getClockWiseMostVertex(startVertex, supportLine, vNext);
+				/*
 				if (startVertex.id == 96)
 				{
 					cout << "vNext " << vNext.id << endl;
 				}
-
-
+				*/
 				started = true;
 			}
 			else
@@ -349,29 +355,89 @@ void Drawing::findAllMinimalCycleBasis()
 				cout << "Shouldn't Be here!!!!!!!!!!!!!!!";
 				break;
 			}
+			closedWalk.push_back(vCurr.id);
 
 			vPrev = vCurr;
 			vCurr = vNext;
 
-			Edge edge(vPrev.id, vCurr.id);
-			cycleEdgeList.push_back(edge);
+		//	Edge edge(vPrev.id, vCurr.id);
+		//	cycleEdgeList.push_back(edge);
 		}
 
-		vector<int> tempList;
-		for (int i = 0; i < cycleEdgeList.size(); i++)
+
+		closedWalk.push_back(startVertex.id);
+
+
+		// first int is the vertexId, second int is the indicies into the cycleEdgeList;
+		unordered_map<int, int> duplicates;
+		int nestedLoopStart = -1;
+		int nestedLoopEnd = -1;
+		int lastRootVertexId = -1;
+
+		for (int i = 1; i < closedWalk.size() - 1; ++i)
 		{
-			if (i == 0)
+			// if this is a duplicate
+			if (duplicates.find(closedWalk[i]) != duplicates.end())
 			{
-				tempList.push_back(cycleEdgeList[i].id0);
-				tempList.push_back(cycleEdgeList[i].id1);
+				nestedLoopStart = duplicates[closedWalk[i]];
+				nestedLoopEnd = i;
+				/*
+		//		detachments.insert(nestedLoopStart);
+				for (int j = nestedLoopStart; i < nestedLoopEnd; ++j)
+				{
+			//		duplicates.erase(closedWalk[j]);
+				}
+				*/
+				lastRootVertexId = nestedLoopStart;
+
+			//	closedWalk.erase(closedWalk.begin() + nestedLoopStart + 1, 
+			//					 closedWalk.begin() + nestedLoopEnd);
 			}
 			else
 			{
-				tempList.push_back(cycleEdgeList[i].id1);
+				duplicates[closedWalk[i]] = i;
 			}
 		}
 
-		polygons.push_back(tempList);
+		// remove neighbor0 and neighbor1, 
+		// recreate the root vertex
+//		if(lastRootVertexId != null)
+//		Vertex newVertex = 
+		if (lastRootVertexId != -1)
+		{
+			nestedSubgraphPostprocess(lastRootVertexId, closedWalk, nestedLoopStart, nestedLoopEnd);
+						
+			closedWalk.erase(closedWalk.begin() + nestedLoopStart + 1,  closedWalk.begin() + nestedLoopEnd + 1);
+		}
+
+		/*
+		cout << "print closdedWalk " << endl;
+		for (int i = 0; i < closedWalk.size(); i++)
+		{
+			cout << closedWalk[i] << " ";
+		}
+		cout << endl;
+		*/
+		for (int i = 0; i < closedWalk.size() - 1; i++)
+		{
+			int id0 = 0;
+			int id1 = 1;
+			Edge edge(closedWalk[i], closedWalk[i+1]);
+			cycleEdgeList.push_back(edge);
+		}
+
+		/*
+		for (int i = 0; i < cycleEdgeList.size(); i++)
+		{
+			cycleEdgeList[i].print();
+		}
+		cout << endl;
+		*/
+
+	//	printVerticesAndEdges();
+
+		polygons.push_back(closedWalk);
+
 
 
 		// first to CCW traversal to remove edges
@@ -479,6 +545,11 @@ void Drawing::findAllMinimalCycleBasis()
 		}
 
 
+
+
+
+
+
 		hasValidStartVertex = getCycleStartingVertex(startVertex);
 		iterations++;
 /*
@@ -492,6 +563,69 @@ void Drawing::findAllMinimalCycleBasis()
 	printPolygons();
 	
 //	doEarClipping();
+}
+
+
+
+void Drawing::nestedSubgraphPostprocess(int root, vector<int> closedWalk, int start, int end)
+{
+	/*
+	cout << ">>>>>>> nestedSubgraphPostprocess " << endl;
+
+	cout << "start " << start << " end " << end << endl;
+	for (int i = 0; i < closedWalk.size(); i++)
+	{
+		cout << closedWalk[i] << " ";
+	}
+	cout << endl;
+	*/
+
+	vector<int> neighborList;
+
+//	cout << "subgraph" << endl;
+	for (int i = start; i <= end; i++)
+	{
+//		cout << closedWalk[i] << " ";
+		if (closedWalk[i] == root)
+		{
+			// add the one behind u
+			if (i == start)
+			{
+				neighborList.push_back(closedWalk[i + 1]);
+			} 
+			// add the one before u
+			else if (i == end)
+			{
+				neighborList.push_back(closedWalk[i - 1]);
+			}
+			// add botht he one behind and before u
+			else
+			{
+				neighborList.push_back(closedWalk[i + 1]);
+				neighborList.push_back(closedWalk[i - 1]);
+			}
+		}		
+	}
+	cout << endl;
+
+
+//	cout << "vertices.size() " << vertices.size() << end;
+
+	
+	// replicate root for these new neighbor dudes
+	int newId = getNewVertexId();
+	Vertex newVertex = Vertex(vertices[root]);
+	newVertex.id = newId;
+	newVertex.resetNeighbors();
+	vertices.push_back(newVertex);
+	for (int i = 0; i < neighborList.size(); i++)
+	{
+		vertices[root].removeNeighbor(neighborList[i]);
+		vertices[newId].addNeighbor(neighborList[i]);
+		vertices[neighborList[i]].removeNeighbor(root);
+		vertices[neighborList[i]].addNeighbor(newId);
+	}
+	
 }
 
 
@@ -999,7 +1133,7 @@ bool Drawing::getClockWiseMostVertex(Vertex vCur, glm::vec2 prevDir, Vertex& out
 	for (int i = 1; i < vCur.neighbors.size(); i++)
 	{
 		int neighborId = vCur.neighbors[i];
-//		cout << "neighborId " << neighborId << endl;
+		cout << "	neighborId " << neighborId << endl;
 		Vertex vNeighbor = vertices[neighborId];
 		glm::vec2 newDir = vNeighbor.pos - vCur.pos;
 

@@ -200,7 +200,7 @@ void ZillowClone::init()
 	if (loadData)
 	{
 		curDrawing.saveLatest = false;
-		curDrawing.loadTestData("rand_shape7.txt");
+		curDrawing.loadTestData("rand_shape4.txt");
 
 		createRenderHandleForLoadedTestData(curDrawing);
 		debugDrawing(curDrawing);
@@ -1114,7 +1114,7 @@ void ZillowClone::render()
 			obj.renderGroup(m_pipeline, p_renderer);
 		}
 
-		
+		/*
 		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_RED);
 		for (int i = 0; i < ecTriangles.size(); i++)
 		{
@@ -1145,7 +1145,7 @@ void ZillowClone::render()
 			WorldObject obj = outsidePolygonLines[i];
 			obj.renderGroup(m_pipeline, p_renderer);
 		}
-				
+			*/	
 	p_renderer->disableShader();
 
 
