@@ -200,13 +200,13 @@ void ZillowClone::init()
 	if (loadData)
 	{
 		curDrawing.saveLatest = false;
-		curDrawing.loadTestData("rand_shape4.txt");
+		curDrawing.loadTestData("rand_shape8.txt");
 
 		createRenderHandleForLoadedTestData(curDrawing);
 		debugDrawing(curDrawing);
 		curDrawing.postProcess();
+
 		createLinesForRemovedEdges(curDrawing);
-		createPointHandlesForEarclippingPolygons();
 	}
 	else
 	{
@@ -631,7 +631,7 @@ void ZillowClone::createLinesForInsideOutsidePolygons(Drawing drawingIn)
 {
 	insidePolygonLines.clear();
 	outsidePolygonLines.clear();
-
+	cout << " drawingIn.polygons.size() " << drawingIn.polygons.size() << endl;
 	for (int i = 0; i < drawingIn.polygons.size(); i++)
 	{
 		vector<Vertex> vertices = drawingIn.getVerticesByIds(drawingIn.polygons[i]);
@@ -1077,13 +1077,15 @@ void ZillowClone::render()
 
 	// Rendering wireframes
 	p_renderer = &global.rendererMgr->r_fullVertexColor;
+
+	
 	p_renderer->enableShader();
 	if (drawingWorldObject.canRender())
 	{
 		drawingWorldObject.renderGroup(m_pipeline, p_renderer);
 	}
 	p_renderer->disableShader();
-
+	
 
 
 	// Rendering wireframes
@@ -1121,7 +1123,7 @@ void ZillowClone::render()
 			WorldObject obj = ecTriangles[i];
 			obj.renderGroup(m_pipeline, p_renderer);
 		}
-
+		
 
 		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_GRAY);
 		for (int i = 0; i < removedEdges.size(); i++)
@@ -1129,7 +1131,6 @@ void ZillowClone::render()
 			WorldObject obj = removedEdges[i];
 			obj.renderGroup(m_pipeline, p_renderer);
 		}
-
 		
 		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_GRAY);
 		for (int i = 0; i < insidePolygonLines.size(); i++)
@@ -1145,7 +1146,7 @@ void ZillowClone::render()
 			WorldObject obj = outsidePolygonLines[i];
 			obj.renderGroup(m_pipeline, p_renderer);
 		}
-			*/	
+		*/
 	p_renderer->disableShader();
 
 
@@ -1205,6 +1206,8 @@ void ZillowClone::createModelsForDrawing(Drawing drawingIn)
 	int counter = 0;
 
 	float earClippingLineWidth = 0.3f;
+
+
 	for (int i = 0; i < drawingIn.earclippingPolygons.size(); i++)
 	{
 		bool isInside = drawingIn.polygonInsideFlags[i];
@@ -1213,7 +1216,7 @@ void ZillowClone::createModelsForDrawing(Drawing drawingIn)
 
 	Mesh m(vertices, indices);
 	model->m_meshes.push_back(m);
-
+	int a = 1;
 	drawingWorldObject.setModel(model);
 }
 
@@ -1221,6 +1224,7 @@ void ZillowClone::createModelsForDrawing(Drawing drawingIn)
 void ZillowClone::createModelsForPolyginsInDrawing(EarclippingPolygon ecPolygon, bool isInside, 
 													vector<VertexData>& vertices, vector<unsigned int>& indices)
 {
+	cout << "drawingIn.createModelsForPolyginsInDrawing.size() " << ecPolygon.triangles.size() << endl;
 	for (int i = 0; i < ecPolygon.triangles.size(); i++)
 	{
 		vector<Vertex> triangle = ecPolygon.triangles[i];
@@ -1230,11 +1234,11 @@ void ZillowClone::createModelsForPolyginsInDrawing(EarclippingPolygon ecPolygon,
 
 		VertexData tmp;
 
-		/*
+		
 		cout << "v0 " << v0.pos.x << " " << v0.pos.y << endl;
 		cout << "v1 " << v1.pos.x << " " << v1.pos.y << endl;
 		cout << "v2 " << v2.pos.x << " " << v2.pos.y << endl;
-		*/
+		
 
 		tmp.m_position = glm::vec3(v0.pos.x, v0.pos.y, 0);
 		tmp.m_color = isInside ? COLOR_LIGHT_BLUE : COLOR_WHITE;

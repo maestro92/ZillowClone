@@ -305,9 +305,12 @@ void Drawing::findAllMinimalCycleBasis()
 			vertices[4].print();
 		}
 		*/
-		/*
-		if (startVertex.id == 10)
+	/*
+		if (startVertex.id == 34)
 		{
+
+			vertices[34].print();
+
 			break;
 		}
 		*/
@@ -418,135 +421,149 @@ void Drawing::findAllMinimalCycleBasis()
 		}
 		cout << endl;
 		*/
-		for (int i = 0; i < closedWalk.size() - 1; i++)
+
+		// for the case if our starting Vertex is a filament edge rather than a cycle edge
+		// part 4.3.3 of the paper
+		if (closedWalk.size() >= 4)
 		{
-			int id0 = 0;
-			int id1 = 1;
-			Edge edge(closedWalk[i], closedWalk[i+1]);
-			cycleEdgeList.push_back(edge);
-		}
 
-		/*
-		for (int i = 0; i < cycleEdgeList.size(); i++)
-		{
-			cycleEdgeList[i].print();
-		}
-		cout << endl;
-		*/
+			for (int i = 0; i < closedWalk.size() - 1; i++)
+			{
+				int id0 = 0;
+				int id1 = 1;
+				Edge edge(closedWalk[i], closedWalk[i + 1]);
+				cycleEdgeList.push_back(edge);
+			}
 
-	//	printVerticesAndEdges();
+			/*
+			for (int i = 0; i < cycleEdgeList.size(); i++)
+			{
+				cycleEdgeList[i].print();
+			}
+			cout << endl;
+			*/
 
-		polygons.push_back(closedWalk);
+			//	printVerticesAndEdges();
+
+			polygons.push_back(closedWalk);
 
 
 
-		// first to CCW traversal to remove edges
-		vector<Edge> toBeRemoved;
+			// first to CCW traversal to remove edges
+			vector<Edge> toBeRemoved;
 
-		/*
-		if (startVertex.id == 16)
-		{
-			cout << "CCW traversal" << endl;
-		}
-		*/
-		// remove removable edges
-		for (int i = 0; i < cycleEdgeList.size(); i++)
-		{
-			Vertex v = vertices[cycleEdgeList[i].id1];
 			/*
 			if (startVertex.id == 16)
 			{
-				cout << "	removing edge " << cycleEdgeList[i].id0 << " " << cycleEdgeList[i].id1 << endl;
+				cout << "CCW traversal" << endl;
 			}
 			*/
-			toBeRemoved.push_back(cycleEdgeList[i]);
-
-			if (v.neighbors.size() > 2)
-			{		
-				break;
-			}
-		}
-
-		/*
-		if (startVertex.id == 16)
-		{
-			cout << "CW traversal" << endl;
-		}
-		*/
-		// then to CW traversal to remove edges
-		for (int i = cycleEdgeList.size() - 1; i >= 0; i--)
-		{
-			Vertex v = vertices[cycleEdgeList[i].id0];
-			if (alreadyInVector(toBeRemoved, cycleEdgeList[i]) == false)
+			// remove removable edges
+			for (int i = 0; i < cycleEdgeList.size(); i++)
 			{
-			/*
+				Vertex v = vertices[cycleEdgeList[i].id1];
+				/*
 				if (startVertex.id == 16)
 				{
 					cout << "	removing edge " << cycleEdgeList[i].id0 << " " << cycleEdgeList[i].id1 << endl;
 				}
 				*/
 				toBeRemoved.push_back(cycleEdgeList[i]);
+
+				if (v.neighbors.size() > 2)
+				{
+					break;
+				}
 			}
 
-			if (v.neighbors.size() > 2)
+			/*
+			if (startVertex.id == 16)
 			{
-				break;
-			}			
+				cout << "CW traversal" << endl;
+			}
+			*/
+			// then to CW traversal to remove edges
+			for (int i = cycleEdgeList.size() - 1; i >= 0; i--)
+			{
+				Vertex v = vertices[cycleEdgeList[i].id0];
+				if (alreadyInVector(toBeRemoved, cycleEdgeList[i]) == false)
+				{
+					/*
+						if (startVertex.id == 16)
+						{
+							cout << "	removing edge " << cycleEdgeList[i].id0 << " " << cycleEdgeList[i].id1 << endl;
+						}
+						*/
+					toBeRemoved.push_back(cycleEdgeList[i]);
+				}
+
+				if (v.neighbors.size() > 2)
+				{
+					break;
+				}
+			}
+
+
+			for (int i = 0; i < toBeRemoved.size(); i++)
+			{
+				removeEdge(toBeRemoved[i]);
+				m_removedEdges.push_back(toBeRemoved[i]);
+			}
+			toBeRemoved.clear();
+
+			// also need to filaments
+			// remove nodes that only has one neighbor. this occurs when you gradually remove edges during your findingMinimalCycles steps
+			// this needs to happen after removing the cycleEdges
+
+			for (int i = 0; i < vertices.size(); i++)
+			{
+				if (vertices[i].neighbors.size() == 1)
+				{
+					Edge edge;
+					edge.id0 = vertices[i].id;
+					edge.id1 = vertices[i].neighbors[0];
+					toBeRemoved.push_back(edge);
+				}
+			}
+
+			/*
+			for (int i = 0; i < toBeRemoved.size(); i++)
+			{
+				removeEdge(toBeRemoved[i]);
+				m_removedEdges.push_back(toBeRemoved[i]);
+			}
+			*/
+			// sometimes when you remove one edge, it will make another vertex a filaments
+			// so we have to keep on scanning until there are no more filaments
+			while (toBeRemoved.size() > 0)
+			{
+				int id0 = toBeRemoved[0].id1;
+				int id1 = toBeRemoved[0].id1;
+				removeEdge(toBeRemoved[0]);
+				m_removedEdges.push_back(toBeRemoved[0]);
+				toBeRemoved.erase(toBeRemoved.begin());
+
+				// push the new one 
+				if (vertices[id1].neighbors.size() == 1)
+				{
+					Edge edge;
+					edge.id0 = vertices[id1].id;
+					edge.id1 = vertices[id1].neighbors[0];
+					toBeRemoved.push_back(edge);
+				}
+			}
+
 		}
-
-
-		for (int i = 0; i < toBeRemoved.size(); i++)
-		{
-			removeEdge(toBeRemoved[i]);
-			m_removedEdges.push_back(toBeRemoved[i]);
-		}
-		toBeRemoved.clear();
-
-		// also need to filaments
-		// remove nodes that only has one neighbor. this occurs when you gradually remove edges during your findingMinimalCycles steps
-		// this needs to happen after removing the cycleEdges
 		
-		for (int i = 0; i < vertices.size(); i++)
+		else
 		{
-			if (vertices[i].neighbors.size() == 1)
-			{
-				Edge edge;
-				edge.id0 = vertices[i].id;
-				edge.id1 = vertices[i].neighbors[0];
-				toBeRemoved.push_back(edge);
-			}
+			Edge edge;
+			edge.id0 = closedWalk[0];
+			edge.id1 = closedWalk[1];
+			removeEdge(edge);
+			m_removedEdges.push_back(edge);
 		}
-
-		/*
-		for (int i = 0; i < toBeRemoved.size(); i++)
-		{
-			removeEdge(toBeRemoved[i]);
-			m_removedEdges.push_back(toBeRemoved[i]);
-		}
-		*/
-		// sometimes when you remove one edge, it will make another vertex a filaments
-		// so we have to keep on scanning until there are no more filaments
-		while (toBeRemoved.size() > 0)
-		{
-			int id0 = toBeRemoved[0].id1;
-			int id1 = toBeRemoved[0].id1;
-			removeEdge(toBeRemoved[0]);
-			m_removedEdges.push_back(toBeRemoved[0]);
-			toBeRemoved.erase(toBeRemoved.begin());
-
-			// push the new one 
-			if (vertices[id1].neighbors.size() == 1)
-			{
-				Edge edge;
-				edge.id0 = vertices[id1].id;
-				edge.id1 = vertices[id1].neighbors[0];
-				toBeRemoved.push_back(edge);
-			}
-		}
-
-
-
-
+		
 
 
 
@@ -669,6 +686,8 @@ vector<Vertex> Drawing::getVerticesByIds(vector<int> vertexIds)
 
 void Drawing::doEarClipping()
 {
+	earclippingPolygons.clear();
+	cout << "doEarClipping " << endl;
 	//cout << "Printing VerticesGroups" << endl;
 	for (int i = 0; i < polygons.size(); i++)
 	{
@@ -1270,7 +1289,7 @@ bool Drawing::getCounterClockWiseMostVertex(Vertex vPrev, Vertex vCur, Vertex& o
 void Drawing::postProcess()
 {
 	createVerticesAndEdges();
-	printVerticesAndEdges();
+//	printVerticesAndEdges();
 	cout << " ############### postProcess" << endl;
 
 	if (saveLatest)
@@ -1332,6 +1351,7 @@ int Drawing::getPointIndex(glm::vec2 point0, glm::vec2 point1)
 
 void Drawing::determinePolygonsInsideOutside()
 {
+	cout << "determinePolygonsInsideOutside " << polygons.size() << endl;
 	polygonInsideFlags.clear();
 	for (int i = 0; i < polygons.size(); i++)
 	{
