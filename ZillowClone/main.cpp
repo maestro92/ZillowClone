@@ -200,13 +200,13 @@ void ZillowClone::init()
 	if (loadData)
 	{
 		curDrawing.saveLatest = false;
-		curDrawing.loadTestData("rand_shape9.txt");
+		curDrawing.loadTestData("rand_shape11.txt");
 
 		createRenderHandleForLoadedTestData(curDrawing);
 		debugDrawing(curDrawing);
-		curDrawing.postProcess();
 
-		createLinesForRemovedEdges(curDrawing);
+	//	curDrawing.postProcess();
+	//	createLinesForRemovedEdges(curDrawing);
 	}
 	else
 	{
@@ -901,6 +901,11 @@ void ZillowClone::update()
 
 						break;
 
+					case SDLK_v:
+						curDrawing.postProcess();
+						createLinesForRemovedEdges(curDrawing);
+						break;
+
 					case SDLK_t:
 						curDrawing.doEarClipping();
 						createPointHandlesForEarclippingPolygons();
@@ -1123,8 +1128,10 @@ void ZillowClone::render()
 			WorldObject obj = ecTriangles[i];
 			obj.renderGroup(m_pipeline, p_renderer);
 		}
-	
 
+		*/
+
+		/*
 		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_GRAY);
 		for (int i = 0; i < removedEdges.size(); i++)
 		{

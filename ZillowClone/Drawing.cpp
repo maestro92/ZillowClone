@@ -306,11 +306,12 @@ void Drawing::findAllMinimalCycleBasis()
 		}
 		*/
 	
-		if (startVertex.id == 19)
+		if (startVertex.id == 160)
 		{
 
 			counter++;
-		//	if (counter == 2)
+		//	vertices[160].print();
+			//	if (counter == 2)
 			{
 				/*
 				vertices[1].print();
@@ -322,6 +323,7 @@ void Drawing::findAllMinimalCycleBasis()
 				break;
 				*/
 			}
+		//	break;
 		}
 		
 		/*
@@ -385,9 +387,10 @@ void Drawing::findAllMinimalCycleBasis()
 		unordered_map<int, int> duplicates;
 		int nestedLoopStart = -1;
 		int nestedLoopEnd = -1;
-		int lastRootVertexId = -1;
 
-		if (startVertex.id == 19)
+		/*
+	//	if (startVertex.id == 19)
+		cout << "before " << endl;
 		{
 			for (int i = 0; i < closedWalk.size() - 1; ++i)
 			{
@@ -395,8 +398,10 @@ void Drawing::findAllMinimalCycleBasis()
 			}
 			cout << endl;
 		}
-
-
+		*/
+		
+		vector<vector<int>> nestedLoops;
+		// one closed walk might have two nested loops
 		for (int i = 1; i < closedWalk.size() - 1; ++i)
 		{
 			// if this is a duplicate
@@ -404,6 +409,14 @@ void Drawing::findAllMinimalCycleBasis()
 			{
 				nestedLoopStart = duplicates[closedWalk[i]];
 				nestedLoopEnd = i;
+
+
+				/*
+				cout << "found duplicate for " << closedWalk[i] << endl;
+				cout << "nestedLoopStart " << nestedLoopStart << endl;
+				cout << "nestedLoopEnd " << nestedLoopEnd << endl;
+				*/
+				
 				/*
 		//		detachments.insert(nestedLoopStart);
 				for (int j = nestedLoopStart; i < nestedLoopEnd; ++j)
@@ -411,10 +424,52 @@ void Drawing::findAllMinimalCycleBasis()
 			//		duplicates.erase(closedWalk[j]);
 				}
 				*/
-				lastRootVertexId = closedWalk[i];
+				vector<int> nestedLoop;
+				nestedLoop.push_back(closedWalk[i]);
+				for (int j = nestedLoopStart + 1; j < nestedLoopEnd+1; ++j)
+				{
+					duplicates.erase(closedWalk[j]);
+					nestedLoop.push_back(closedWalk[j]);
+				}
+				nestedLoops.push_back(nestedLoop);
 
-			//	closedWalk.erase(closedWalk.begin() + nestedLoopStart + 1, 
-			//					 closedWalk.begin() + nestedLoopEnd);
+				/*
+				cout << "	before1 " << endl;
+				{
+					for (int k = 0; k < closedWalk.size(); ++k)
+					{
+						cout << closedWalk[k] << " ";
+					}
+					cout << endl;
+				}
+				
+
+				cout << "	nestedLoop " << nestedLoop.size() << endl;
+				{
+					for (int k = 0; k < nestedLoop.size(); ++k)
+					{
+						cout << nestedLoop[k] << " ";
+					}
+					cout << endl;
+				}
+				*/
+
+
+				closedWalk.erase(closedWalk.begin() + nestedLoopStart + 1, 
+								 closedWalk.begin() + nestedLoopEnd + 1);
+
+				/*
+				cout << "	after1 " << endl;
+				{
+					for (int k = 0; k < closedWalk.size(); ++k)
+					{
+						cout << closedWalk[k] << " ";
+					}
+					cout << endl;
+				}
+				*/
+
+				i = nestedLoopStart;
 			}
 			else
 			{
@@ -427,7 +482,7 @@ void Drawing::findAllMinimalCycleBasis()
 //		if(lastRootVertexId != null)
 //		Vertex newVertex = 
 
-		if (startVertex.id == 19)
+		/*
 		{
 			cout << "lastRootVertexId " << lastRootVertexId << endl;
 		}
@@ -438,8 +493,13 @@ void Drawing::findAllMinimalCycleBasis()
 						
 			closedWalk.erase(closedWalk.begin() + nestedLoopStart + 1,  closedWalk.begin() + nestedLoopEnd + 1);
 		}
+		*/
 
-		if (startVertex.id == 19)
+		processNestedLoops(nestedLoops);
+
+//		if (startVertex.id == 19)
+		/*
+		cout << "after " << endl;
 		{
 			for (int i = 0; i < closedWalk.size() - 1; ++i)
 			{
@@ -447,7 +507,7 @@ void Drawing::findAllMinimalCycleBasis()
 			}
 			cout << endl;
 		}
-
+		*/
 
 		/*
 		cout << "print closdedWalk " << endl;
@@ -623,55 +683,55 @@ void Drawing::findAllMinimalCycleBasis()
 
 
 
-void Drawing::nestedSubgraphPostprocess(int root, vector<int> closedWalk, int start, int end)
-{
-	/*
+
+void Drawing::processNestedLoops(vector<vector<int>> nestedLoops)
+{	
 	cout << ">>>>>>> nestedSubgraphPostprocess " << endl;
-
-	cout << "start " << start << " end " << end << endl;
-	for (int i = 0; i < closedWalk.size(); i++)
+	for (int i = 0; i < nestedLoops.size(); i++)
 	{
-		cout << closedWalk[i] << " ";
+		processNestedLoop(nestedLoops[i]);
 	}
-	cout << endl;
-	*/
+}
 
+
+void Drawing::processNestedLoop(vector<int> nestedLoop)
+{
 	vector<int> neighborList;
+	int root = nestedLoop[0];
 
-//	cout << "subgraph" << endl;
-	for (int i = start; i <= end; i++)
+	//	cout << "subgraph" << endl;
+	for (int i = 0; i < nestedLoop.size(); i++)
 	{
-//		cout << closedWalk[i] << " ";
-		if (closedWalk[i] == root)
+		//		cout << closedWalk[i] << " ";
+		if (nestedLoop[i] == root)
 		{
 			// add the one behind u
-			if (i == start)
+			if (i == 0)
 			{
-				neighborList.push_back(closedWalk[i + 1]);
-			} 
+				neighborList.push_back(nestedLoop[i + 1]);
+			}
 			// add the one before u
-			else if (i == end)
+			else if (i == nestedLoop.size() - 1 && nestedLoop.size() > 3)
 			{
-				neighborList.push_back(closedWalk[i - 1]);
+				neighborList.push_back(nestedLoop[i - 1]);
 			}
-			// add botht he one behind and before u
-			else
-			{
-				neighborList.push_back(closedWalk[i + 1]);
-				neighborList.push_back(closedWalk[i - 1]);
-			}
-		}		
+		}
 	}
 	cout << endl;
 
 
-//	cout << "vertices.size() " << vertices.size() << end;
+	//	cout << "vertices.size() " << vertices.size() << end;
 
-	
+
 	// replicate root for these new neighbor dudes
 	int newId = getNewVertexId();
 
 	cout << "creating newId " << newId << ", cloning " << root << endl;
+	for (int i = 0; i < nestedLoop.size(); i++)
+	{
+		cout << nestedLoop[i] << " ";
+	}
+	cout << endl;
 
 	Vertex newVertex = Vertex(vertices[root]);
 	newVertex.id = newId;
@@ -679,13 +739,14 @@ void Drawing::nestedSubgraphPostprocess(int root, vector<int> closedWalk, int st
 	vertices.push_back(newVertex);
 	for (int i = 0; i < neighborList.size(); i++)
 	{
+		cout << "	adding Neighbor " << neighborList[i] << endl;
 		vertices[root].removeNeighbor(neighborList[i]);
 		vertices[newId].addNeighbor(neighborList[i]);
 		vertices[neighborList[i]].removeNeighbor(root);
 		vertices[neighborList[i]].addNeighbor(newId);
 	}
-	
 }
+
 
 
 void Drawing::printPolygons()
@@ -1508,3 +1569,71 @@ bool Drawing::LineSegmentLineSegmentIntersection(glm::vec2 p0, glm::vec2 p1, glm
 	return false;
 
 }
+
+
+
+#if 0 
+void Drawing::nestedSubgraphPostprocess(int root, vector<int> closedWalk, int start, int end)
+{
+	/*
+	cout << ">>>>>>> nestedSubgraphPostprocess " << endl;
+
+	cout << "start " << start << " end " << end << endl;
+	for (int i = 0; i < closedWalk.size(); i++)
+	{
+	cout << closedWalk[i] << " ";
+	}
+	cout << endl;
+	*/
+
+	vector<int> neighborList;
+
+	//	cout << "subgraph" << endl;
+	for (int i = start; i <= end; i++)
+	{
+		//		cout << closedWalk[i] << " ";
+		if (closedWalk[i] == root)
+		{
+			// add the one behind u
+			if (i == start)
+			{
+				neighborList.push_back(closedWalk[i + 1]);
+			}
+			// add the one before u
+			else if (i == end)
+			{
+				neighborList.push_back(closedWalk[i - 1]);
+			}
+			// add botht he one behind and before u
+			else
+			{
+				neighborList.push_back(closedWalk[i + 1]);
+				neighborList.push_back(closedWalk[i - 1]);
+			}
+		}
+	}
+	cout << endl;
+
+
+	//	cout << "vertices.size() " << vertices.size() << end;
+
+
+	// replicate root for these new neighbor dudes
+	int newId = getNewVertexId();
+
+	cout << "creating newId " << newId << ", cloning " << root << endl;
+
+	Vertex newVertex = Vertex(vertices[root]);
+	newVertex.id = newId;
+	newVertex.resetNeighbors();
+	vertices.push_back(newVertex);
+	for (int i = 0; i < neighborList.size(); i++)
+	{
+		vertices[root].removeNeighbor(neighborList[i]);
+		vertices[newId].addNeighbor(neighborList[i]);
+		vertices[neighborList[i]].removeNeighbor(root);
+		vertices[neighborList[i]].addNeighbor(newId);
+	}
+
+}
+#endif

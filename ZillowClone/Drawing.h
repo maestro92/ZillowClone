@@ -19,7 +19,7 @@ class Drawing
 	public:
 
 		static float EPSILON;
-
+		int counter;
 		struct IntersectionInfo
 		{
 			glm::vec2 intersectionPoint;
@@ -232,7 +232,8 @@ class Drawing
 		vector<Line> lines;
 
 		void nestedSubgraphPostprocess(int root, vector<int> closedWalk, int start, int end);
-
+		void processNestedLoops(vector<vector<int>> nestedLoops);
+		void processNestedLoop(vector<int> nestedLoop);
 
 	public:
 		std::function<void(glm::vec2) > onAddIntersection;
