@@ -296,7 +296,7 @@ void Drawing::findAllMinimalCycleBasis()
 		Vertex vPrev;
 		hasValidStartVertex = false;
 		iterations = 0;
-
+		cout << "		Starting new cycle with " << startVertex.id << endl;
 /*
 		cout << "		Starting new cycle with " << startVertex.id << endl;
 
@@ -305,15 +305,25 @@ void Drawing::findAllMinimalCycleBasis()
 			vertices[4].print();
 		}
 		*/
-	/*
-		if (startVertex.id == 34)
+	
+		if (startVertex.id == 19)
 		{
 
-			vertices[34].print();
+			counter++;
+		//	if (counter == 2)
+			{
+				/*
+				vertices[1].print();
 
-			break;
+				vertices[2].print();
+
+				vertices[119].print();
+	
+				break;
+				*/
+			}
 		}
-		*/
+		
 		/*
 		if (startVertex.id == 96)
 		{
@@ -377,6 +387,16 @@ void Drawing::findAllMinimalCycleBasis()
 		int nestedLoopEnd = -1;
 		int lastRootVertexId = -1;
 
+		if (startVertex.id == 19)
+		{
+			for (int i = 0; i < closedWalk.size() - 1; ++i)
+			{
+				cout << closedWalk[i] << " ";
+			}
+			cout << endl;
+		}
+
+
 		for (int i = 1; i < closedWalk.size() - 1; ++i)
 		{
 			// if this is a duplicate
@@ -391,7 +411,7 @@ void Drawing::findAllMinimalCycleBasis()
 			//		duplicates.erase(closedWalk[j]);
 				}
 				*/
-				lastRootVertexId = nestedLoopStart;
+				lastRootVertexId = closedWalk[i];
 
 			//	closedWalk.erase(closedWalk.begin() + nestedLoopStart + 1, 
 			//					 closedWalk.begin() + nestedLoopEnd);
@@ -406,12 +426,28 @@ void Drawing::findAllMinimalCycleBasis()
 		// recreate the root vertex
 //		if(lastRootVertexId != null)
 //		Vertex newVertex = 
+
+		if (startVertex.id == 19)
+		{
+			cout << "lastRootVertexId " << lastRootVertexId << endl;
+		}
+
 		if (lastRootVertexId != -1)
 		{
 			nestedSubgraphPostprocess(lastRootVertexId, closedWalk, nestedLoopStart, nestedLoopEnd);
 						
 			closedWalk.erase(closedWalk.begin() + nestedLoopStart + 1,  closedWalk.begin() + nestedLoopEnd + 1);
 		}
+
+		if (startVertex.id == 19)
+		{
+			for (int i = 0; i < closedWalk.size() - 1; ++i)
+			{
+				cout << closedWalk[i] << " ";
+			}
+			cout << endl;
+		}
+
 
 		/*
 		cout << "print closdedWalk " << endl;
@@ -421,6 +457,7 @@ void Drawing::findAllMinimalCycleBasis()
 		}
 		cout << endl;
 		*/
+		vector<Edge> toBeRemoved;
 
 		// for the case if our starting Vertex is a filament edge rather than a cycle edge
 		// part 4.3.3 of the paper
@@ -450,7 +487,7 @@ void Drawing::findAllMinimalCycleBasis()
 
 
 			// first to CCW traversal to remove edges
-			vector<Edge> toBeRemoved;
+
 
 			/*
 			if (startVertex.id == 16)
@@ -515,43 +552,7 @@ void Drawing::findAllMinimalCycleBasis()
 			// remove nodes that only has one neighbor. this occurs when you gradually remove edges during your findingMinimalCycles steps
 			// this needs to happen after removing the cycleEdges
 
-			for (int i = 0; i < vertices.size(); i++)
-			{
-				if (vertices[i].neighbors.size() == 1)
-				{
-					Edge edge;
-					edge.id0 = vertices[i].id;
-					edge.id1 = vertices[i].neighbors[0];
-					toBeRemoved.push_back(edge);
-				}
-			}
 
-			/*
-			for (int i = 0; i < toBeRemoved.size(); i++)
-			{
-				removeEdge(toBeRemoved[i]);
-				m_removedEdges.push_back(toBeRemoved[i]);
-			}
-			*/
-			// sometimes when you remove one edge, it will make another vertex a filaments
-			// so we have to keep on scanning until there are no more filaments
-			while (toBeRemoved.size() > 0)
-			{
-				int id0 = toBeRemoved[0].id1;
-				int id1 = toBeRemoved[0].id1;
-				removeEdge(toBeRemoved[0]);
-				m_removedEdges.push_back(toBeRemoved[0]);
-				toBeRemoved.erase(toBeRemoved.begin());
-
-				// push the new one 
-				if (vertices[id1].neighbors.size() == 1)
-				{
-					Edge edge;
-					edge.id0 = vertices[id1].id;
-					edge.id1 = vertices[id1].neighbors[0];
-					toBeRemoved.push_back(edge);
-				}
-			}
 
 		}
 		
@@ -565,6 +566,44 @@ void Drawing::findAllMinimalCycleBasis()
 		}
 		
 
+
+		for (int i = 0; i < vertices.size(); i++)
+		{
+			if (vertices[i].neighbors.size() == 1)
+			{
+				Edge edge;
+				edge.id0 = vertices[i].id;
+				edge.id1 = vertices[i].neighbors[0];
+				toBeRemoved.push_back(edge);
+			}
+		}
+
+		/*
+		for (int i = 0; i < toBeRemoved.size(); i++)
+		{
+		removeEdge(toBeRemoved[i]);
+		m_removedEdges.push_back(toBeRemoved[i]);
+		}
+		*/
+		// sometimes when you remove one edge, it will make another vertex a filaments
+		// so we have to keep on scanning until there are no more filaments
+		while (toBeRemoved.size() > 0)
+		{
+			int id0 = toBeRemoved[0].id1;
+			int id1 = toBeRemoved[0].id1;
+			removeEdge(toBeRemoved[0]);
+			m_removedEdges.push_back(toBeRemoved[0]);
+			toBeRemoved.erase(toBeRemoved.begin());
+
+			// push the new one 
+			if (vertices[id1].neighbors.size() == 1)
+			{
+				Edge edge;
+				edge.id0 = vertices[id1].id;
+				edge.id1 = vertices[id1].neighbors[0];
+				toBeRemoved.push_back(edge);
+			}
+		}
 
 
 		hasValidStartVertex = getCycleStartingVertex(startVertex);
@@ -631,6 +670,9 @@ void Drawing::nestedSubgraphPostprocess(int root, vector<int> closedWalk, int st
 	
 	// replicate root for these new neighbor dudes
 	int newId = getNewVertexId();
+
+	cout << "creating newId " << newId << ", cloning " << root << endl;
+
 	Vertex newVertex = Vertex(vertices[root]);
 	newVertex.id = newId;
 	newVertex.resetNeighbors();
@@ -1152,7 +1194,7 @@ bool Drawing::getClockWiseMostVertex(Vertex vCur, glm::vec2 prevDir, Vertex& out
 	for (int i = 1; i < vCur.neighbors.size(); i++)
 	{
 		int neighborId = vCur.neighbors[i];
-		cout << "	neighborId " << neighborId << endl;
+	//	cout << "	neighborId " << neighborId << endl;
 		Vertex vNeighbor = vertices[neighborId];
 		glm::vec2 newDir = vNeighbor.pos - vCur.pos;
 
@@ -1236,10 +1278,14 @@ bool Drawing::getCounterClockWiseMostVertex(Vertex vPrev, Vertex vCur, Vertex& o
 	cout << "			prevDir " << prevDir.x << " " << prevDir.y << endl;
 	*/
 	// cout << "	vCur " << vCur.id << endl;
-	for (int i = 0; i < vCur.neighbors.size(); i++)
+
+	if (vCur.id == 34)
 	{
-		int neighborId = vCur.neighbors[i];
-	// 	cout << "		neighborId " << neighborId << endl;
+		for (int i = 0; i < vCur.neighbors.size(); i++)
+		{
+			int neighborId = vCur.neighbors[i];
+			cout << "		neighborId " << neighborId << endl;
+		}
 	}
 	// first found adjacent vertex that is not prev is chosen as V_next
 	for (int i = 1; i < vCur.neighbors.size(); i++)

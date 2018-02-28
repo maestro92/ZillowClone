@@ -22,8 +22,8 @@ float tempPitch2 = 0;
 float tempYaw2 = 0;
 
 
-float CAMERA_POS_DELTA = 2;
-float CAMERA_ZOOM_DELTA = 2;
+float CAMERA_POS_DELTA = 1;
+float CAMERA_ZOOM_DELTA = 1;
 
 //float delta = 2;
 
@@ -200,7 +200,7 @@ void ZillowClone::init()
 	if (loadData)
 	{
 		curDrawing.saveLatest = false;
-		curDrawing.loadTestData("rand_shape8.txt");
+		curDrawing.loadTestData("rand_shape9.txt");
 
 		createRenderHandleForLoadedTestData(curDrawing);
 		debugDrawing(curDrawing);
@@ -1123,7 +1123,7 @@ void ZillowClone::render()
 			WorldObject obj = ecTriangles[i];
 			obj.renderGroup(m_pipeline, p_renderer);
 		}
-		
+	
 
 		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_GRAY);
 		for (int i = 0; i < removedEdges.size(); i++)
@@ -1131,7 +1131,10 @@ void ZillowClone::render()
 			WorldObject obj = removedEdges[i];
 			obj.renderGroup(m_pipeline, p_renderer);
 		}
-		
+		*/
+
+
+		/*
 		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_GRAY);
 		for (int i = 0; i < insidePolygonLines.size(); i++)
 		{
