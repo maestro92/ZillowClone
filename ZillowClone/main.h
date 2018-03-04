@@ -375,9 +375,6 @@ class ZillowClone
 		FOArray<WorldObject*> cl_objects;	// this never creates, only sets objects
 
 
-
-		ZillowClone();
-		ZillowClone(int nice);
 		~ZillowClone();
 
 		/// init functions
@@ -456,12 +453,17 @@ class ZillowClone
 		vector<WorldObject> polygonLines;
 		vector<WorldObject> polygonPoints;
 
+		vector<WorldObject> inputPolygonLines;
+		vector<WorldObject> inputPolygonPoints;
+
+
+
 		vector<WorldObject> lineMarkers;
 
 		vector<WorldObject> insidePolygonLines;
 		vector<WorldObject> outsidePolygonLines;
 
-		WorldObject drawingWorldObject;
+		vector<WorldObject> drawingWorldObjects;
 
 		long long getCurrentTimeMillis();
 };

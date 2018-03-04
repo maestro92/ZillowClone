@@ -9,32 +9,20 @@
 #define RENDER_DEBUG_FLAG 0
 
 
-bool incrFlag = true;
-bool incrFlag2 = true;
-
-bool incrAngleFlag = true;
-bool incrAngleFlag2 = true;
-
-float tempPitch = 0;
-float tempYaw = 0;
-
-float tempPitch2 = 0;
-float tempYaw2 = 0;
-
 
 float CAMERA_POS_DELTA = 1;
 float CAMERA_ZOOM_DELTA = 1;
-
-//float delta = 2;
 
 #define PI 3.14159265
 
 // the server simluates the game in descirete time steps called ticks
 
-glm::vec3 oldPos;
 
 
 float REMOVED_EDGE_LINE_WIDTH = 0.1;
+
+float INPUT_LINE_LINE_WIDTH = 0.5;
+float MERGED_LINE_LINE_WIDTH = 0.4;
 
 /*
 RakNet Ogre tutorial
@@ -67,15 +55,10 @@ SDL_Surface* pDisplaySurface = NULL;
 SDL_Event event;
 
 
-// const bool SINGLE_PLAYER_MODE
-
-
-
 const float GAME_SPEED = 1.0f;
 const float _FIXED_UPDATE_TIME_s = 0.01667f;
 const float FIXED_UPDATE_TIME_s = _FIXED_UPDATE_TIME_s / GAME_SPEED;
 const float FIXED_UPDATE_TIME_ms = FIXED_UPDATE_TIME_s * 1000;
-//const float _FIXED_UPDATE_TIME_s = 
 
 const float MOUSE_DIST_THRESHOLD = 0.05;
 
@@ -86,12 +69,9 @@ const long long SV_FIXED_UPATE_TIME_ms = 1000 / SV_FRAMES_PER_SECOND;
 
 const long long CLIENT_INTERP_DELAY_ms = SV_FIXED_UPATE_TIME_ms * 2;
 
-
-
 // 15 ms, 66.6 ticks per sec are simulated
 const int SERVER_SIMLUATION_FRAMES_PER_SECOND = 66;
 const int SERVER_SIMLUATION_TIME_STEP = 1000 / SERVER_SIMLUATION_FRAMES_PER_SECOND;
-
 
 // 50 ms, 20 snapshots per second
 const int SERVER_SNAPSHOT_PER_SECOND = 20;
@@ -107,22 +87,6 @@ const float SPAWN_POSITION_UNIT_OFFSET = 40.0f;
 
 const int INVALID_OBJECT = 0x7FFFFFFF;
 
-// RendererManager FaceOff::m_rendererMgr;
-// modelMgr	FaceOff::m_modelMgr;
-
-
-
-ZillowClone::ZillowClone()
-{
-	cout << "default ctr" << endl;
-}
-
-ZillowClone::ZillowClone(int nice)
-{
-	SDL_Surface* image = utl::loadRawImage("fern.png");
-	cout << "assginment version" << endl;
-	int a = 1;
-}
 
 ZillowClone::~ZillowClone()
 {
@@ -140,11 +104,7 @@ void ZillowClone::init()
 	global.rendererMgr->init(utl::SCREEN_WIDTH, utl::SCREEN_HEIGHT);
 
 
-
-
 	isRunning = true;
-
-
 
 
 	latencyOptions = { 0, 20, 50, 100, 200 };	// millisecond
@@ -203,7 +163,7 @@ void ZillowClone::init()
 		curDrawing.loadTestData("rand_shape11.txt");
 
 		createRenderHandleForLoadedTestData(curDrawing);
-		debugDrawing(curDrawing);
+	//	debugDrawing(curDrawing);
 
 	//	curDrawing.postProcess();
 	//	createLinesForRemovedEdges(curDrawing);
@@ -271,14 +231,24 @@ void ZillowClone::initObjects()
 
 	curDrawing.onAddIntersection = [this](glm::vec2 point)
 	{
-		WorldObject obj = WorldObject();
-		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
-		obj.setPosition(glm::vec3(point.x, point.y, 0));
-
-		obj.setScale(1);
-
+		WorldObject obj = constructPoint(point, MERGED_LINE_LINE_WIDTH);
 		polygonPoints.push_back(obj);
 	};
+
+
+	curDrawing.createLineCallback = [this](glm::vec2 p0, glm::vec2 p1)
+	{
+		WorldObject line = constructLine(p0, p1, MERGED_LINE_LINE_WIDTH);
+		polygonLines.push_back(line);
+	};
+
+	
+	curDrawing.createPointCallback = [this](glm::vec2 point)
+	{
+		WorldObject obj = constructPoint(point, MERGED_LINE_LINE_WIDTH);
+		polygonPoints.push_back(obj);
+	};
+
 }
 
 
@@ -331,9 +301,6 @@ void ZillowClone::GetTimeProfilerAverages()
 void ZillowClone::start()
 {
 	cout << "Start" << endl;
-//	Uint32 startTime = SDL_GetTicks();
-//	Uint32 curTime = startTime;
-//	m_nextGameTick = 0;
 
 	long long dt = 0;
 	long long oldTime = utl::getCurrentTime_ms(); 
@@ -484,12 +451,12 @@ void ZillowClone::updateCamera()
 					m_cameraCenter.y - m_cameraZoom,
 					m_cameraCenter.y + m_cameraZoom, utl::Z_NEAR, utl::Z_FAR);
 
-	debugDrawing(curDrawing);
+//	debugDrawing(curDrawing);
 }
 
 void ZillowClone::onMouseBtnUp()
 {
-	cout << "onMouseBtnUp" << endl;
+//	cout << "onMouseBtnUp" << endl;
 
 	if (inDrawingMode)
 	{
@@ -497,15 +464,29 @@ void ZillowClone::onMouseBtnUp()
 		
 		addPoint(curDrawing.getFirstPoint());
 
+		curDrawing.postProcessInputPoints();
+
+
 		curDrawing.postProcess();
-		debugDrawing(curDrawing);
+	//	debugDrawing(curDrawing);
+
+		
+		curDrawing.doEarClipping();
+		createPointHandlesForEarclippingPolygons();
+
+		curDrawing.determinePolygonsInsideOutside();
+		createLinesForInsideOutsidePolygons(curDrawing);
+		createModelsForDrawing(curDrawing);
 
 //		createPointHandlesForEarclippingPolygons();
 
-	//	curDrawing.reset();
-	//	drawingList.push_back(curDrawing);
+		curDrawing.reset();
+		drawingList.push_back(curDrawing);
 	}
 }
+
+
+
 
 void ZillowClone::createLinesForRemovedEdges(Drawing drawingIn)
 {
@@ -539,13 +520,7 @@ void ZillowClone::createRenderHandleForLoadedTestData(Drawing drawingIn)
 	{
 		if (i == 0)
 		{
-/*
-			worldPoint = temp[i].pos;
-
-			WorldObject obj = constructPoint(worldPoint, width);
-			polygonLines.push_back(obj);
-	*/
-			continue;
+			// do nothing for now
 		}
 		else
 		{
@@ -560,6 +535,7 @@ void ZillowClone::createRenderHandleForLoadedTestData(Drawing drawingIn)
 		polygonPoints.push_back(obj);
 	}
 }
+
 
 
 WorldObject ZillowClone::constructPoint(glm::vec2 p, float width) const
@@ -631,7 +607,7 @@ void ZillowClone::createLinesForInsideOutsidePolygons(Drawing drawingIn)
 {
 	insidePolygonLines.clear();
 	outsidePolygonLines.clear();
-	cout << " drawingIn.polygons.size() " << drawingIn.polygons.size() << endl;
+
 	for (int i = 0; i < drawingIn.polygons.size(); i++)
 	{
 		vector<Vertex> vertices = drawingIn.getVerticesByIds(drawingIn.polygons[i]);
@@ -708,52 +684,44 @@ void ZillowClone::debugDrawing(Drawing drawing)
 // method2: glBufferData Way
 
 
+
+
+
 void ZillowClone::addPoint(glm::vec2 worldPoint)
 {
+	float width = 0.5;
+	if (curDrawing.getNumInputPoints() > 0)
+	{
+		curDrawing.addInputPoint(worldPoint);
+		WorldObject line = constructLine(lastPoint, worldPoint, width);
+		inputPolygonLines.push_back(line);
+	}
+	else
+	{
+		curDrawing.processNewPoint(worldPoint);
+	}
+
+	WorldObject obj = constructPoint(worldPoint, width);
+	inputPolygonPoints.push_back(obj);
+	
+
+	/*
 	cout << endl << endl << endl << endl;
 	float width = 0.5;
 	if (curDrawing.getNumPoints() > 0)
 	{
 		curDrawing.processNewPoint(worldPoint);
-
-		WorldObject obj = WorldObject();
-		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
-
-		glm::vec2 diffVector = worldPoint - lastPoint;
-		glm::vec2 centerPoint = lastPoint + glm::vec2(diffVector.x / 2.0, diffVector.y / 2.0);
-
-		obj.setPosition(glm::vec3(centerPoint.x, centerPoint.y, 0));
-
-		float angle = atan2(diffVector.y, diffVector.x) * 180 / PI;
-		float length = glm::distance(lastPoint, worldPoint);
-
-		glm::vec3 scale(length, width, 1);
-		obj.setRotation(glm::rotate(angle, 0.0f , 0.0f, 1.0f));
-
-		obj.setScale(scale);
-		polygonLines.push_back(obj);
+		WorldObject line = constructLine(lastPoint, worldPoint, width);
+		polygonLines.push_back(line);
 	}
 	else
 	{
 		curDrawing.processNewPoint(worldPoint);
-
-		WorldObject obj = WorldObject();
-		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
-		obj.setPosition(glm::vec3(worldPoint.x, worldPoint.y, 0));
-
-		obj.setScale(width);
-		polygonLines.push_back(obj);
 	}
-	
-	{
-		WorldObject obj = WorldObject();
-		obj.setModel(global.modelMgr->get(ModelEnum::centeredQuad));
-		obj.setPosition(glm::vec3(worldPoint.x, worldPoint.y, 0));
-
-		obj.setScale(width);
-		polygonPoints.push_back(obj);
-	}
-	
+		
+	WorldObject obj = constructPoint(worldPoint, width);
+	polygonPoints.push_back(obj);
+	*/
 }
 
 
@@ -791,25 +759,18 @@ void ZillowClone::onMouseBtnDown()
 {
 	int tmpx, tmpy;
 	SDL_GetMouseState(&tmpx, &tmpy);
-//	tmpx = utl::SCREEN_WIDTH - tmpx;
 	tmpy = utl::SCREEN_HEIGHT - tmpy;
+
 	if (inDrawingMode)
 	{
 		startedCurrentLine = true;
 		glm::vec2 screenPoint = glm::vec2(tmpx, tmpy);
-		utl::debug("screenPoint", screenPoint);
 
 		glm::vec3 worldPoint = screenToWorldPoint(screenPoint);
-		utl::debug("world point", worldPoint);
-
 		glm::vec2 tempWorldPoint = glm::vec2(worldPoint.x, worldPoint.y);		
+
 		addPoint(tempWorldPoint);
 		lastPoint = tempWorldPoint;
-	}
-	else
-	{
-
-
 	}
 }
 
@@ -818,14 +779,10 @@ void ZillowClone::onMouseBtnHold()
 {
 	int tmpx, tmpy;
 	SDL_GetMouseState(&tmpx, &tmpy);
-//	tmpx = utl::SCREEN_WIDTH - tmpx;
 	tmpy = utl::SCREEN_HEIGHT - tmpy;
-//	utl::debug("here is ");
 
 	if (startedCurrentLine)
 	{
-		glm::vec2 newPoint = glm::vec2(tmpx, tmpy);
-
 		glm::vec2 screenPoint = glm::vec2(tmpx, tmpy);
 
 		glm::vec3 worldPoint = screenToWorldPoint(screenPoint);
@@ -869,6 +826,13 @@ void ZillowClone::onExistDrawingMode()
 	curDrawing.reset();
 	drawingList.clear();
 	polygonLines.clear();
+	polygonPoints.clear();
+
+	inputPolygonLines.clear();
+	inputPolygonPoints.clear();
+
+	drawingWorldObjects.clear();
+
 }
 
 void ZillowClone::update()
@@ -924,10 +888,12 @@ void ZillowClone::update()
 						break;
 
 					case SDLK_e:
+						/*
 						if (startedCurrentLine)
 						{
 							onMouseBtnHold();
 						}
+						*/
 
 						break;
 					case SDLK_x:
@@ -1002,12 +968,12 @@ void ZillowClone::update()
 		}
 	}
 
-	/*
+	
 	if (startedCurrentLine)
 	{
 		onMouseBtnHold();
 	}
-	*/
+	
 
 }
 
@@ -1041,7 +1007,12 @@ Frame
 	update camera
 */
 
+/*
+fixing the first and end point,
 
+combine points that can do a line fit
+
+*/
 
 
 void ZillowClone::render()
@@ -1085,9 +1056,15 @@ void ZillowClone::render()
 
 	
 	p_renderer->enableShader();
-	if (drawingWorldObject.canRender())
+
+	for (int i = 0; i < drawingWorldObjects.size(); i++)
 	{
-		drawingWorldObject.renderGroup(m_pipeline, p_renderer);
+		WorldObject obj = drawingWorldObjects[i];
+		
+		if (obj.canRender())
+		{
+			obj.renderGroup(m_pipeline, p_renderer);
+		}
 	}
 	p_renderer->disableShader();
 	
@@ -1105,6 +1082,23 @@ void ZillowClone::render()
 		}
 
 
+		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_YELLOW);
+		for (int i = 0; i < inputPolygonLines.size(); i++)
+		{
+			WorldObject obj = inputPolygonLines[i];
+			obj.renderGroup(m_pipeline, p_renderer);
+		}
+
+		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_TEAL);
+		for (int i = 0; i < inputPolygonPoints.size(); i++)
+		{
+			WorldObject obj = inputPolygonPoints[i];
+			obj.renderGroup(m_pipeline, p_renderer);
+		}
+
+
+
+
 		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_BLUE);
 
 		for (int i = 0; i < polygonLines.size(); i++)
@@ -1114,7 +1108,7 @@ void ZillowClone::render()
 		}
 
 
-		p_renderer->setData(R_FULL_COLOR::u_color, GREEN);
+		p_renderer->setData(R_FULL_COLOR::u_color, COLOR_RED);
 		for (int i = 0; i < polygonPoints.size(); i++)
 		{
 			WorldObject obj = polygonPoints[i];
@@ -1226,15 +1220,20 @@ void ZillowClone::createModelsForDrawing(Drawing drawingIn)
 
 	Mesh m(vertices, indices);
 	model->m_meshes.push_back(m);
-	int a = 1;
-	drawingWorldObject.setModel(model);
+//	int a = 1;
+//	drawingWorldObject.setModel(model);
+
+	WorldObject obj;
+	obj.setModel(model);
+	drawingWorldObjects.push_back(obj);
+
 }
 
 
 void ZillowClone::createModelsForPolyginsInDrawing(EarclippingPolygon ecPolygon, bool isInside, 
 													vector<VertexData>& vertices, vector<unsigned int>& indices)
 {
-	cout << "drawingIn.createModelsForPolyginsInDrawing.size() " << ecPolygon.triangles.size() << endl;
+	// cout << "drawingIn.createModelsForPolyginsInDrawing.size() " << ecPolygon.triangles.size() << endl;
 	for (int i = 0; i < ecPolygon.triangles.size(); i++)
 	{
 		vector<Vertex> triangle = ecPolygon.triangles[i];
@@ -1244,11 +1243,11 @@ void ZillowClone::createModelsForPolyginsInDrawing(EarclippingPolygon ecPolygon,
 
 		VertexData tmp;
 
-		
+		/*
 		cout << "v0 " << v0.pos.x << " " << v0.pos.y << endl;
 		cout << "v1 " << v1.pos.x << " " << v1.pos.y << endl;
 		cout << "v2 " << v2.pos.x << " " << v2.pos.y << endl;
-		
+		*/
 
 		tmp.m_position = glm::vec3(v0.pos.x, v0.pos.y, 0);
 		tmp.m_color = isInside ? COLOR_LIGHT_BLUE : COLOR_WHITE;
@@ -1284,7 +1283,6 @@ int main(int argc, char *argv[])
 	utl::initSDL(utl::SCREEN_WIDTH, utl::SCREEN_HEIGHT, pDisplaySurface);
 	utl::initGLEW();
 
-	ZillowClone Martin1(2);
 	ZillowClone Martin;
 
 

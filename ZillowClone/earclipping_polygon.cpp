@@ -19,6 +19,7 @@ void EarclippingPolygon::initFromUnprocessedVertices(vector<Vertex> verticesTrav
 {
 	unordered_set<int> visitedIds;
 
+	/*
 	cout << endl << endl << ">>>>>>>>>>>>> initFromUnprocessedVertices" << endl;
 	for (int i = 0; i < verticesTraversalList.size(); i++)
 	{
@@ -26,6 +27,7 @@ void EarclippingPolygon::initFromUnprocessedVertices(vector<Vertex> verticesTrav
 		cout << v.id << " ";
 	}
 	cout << endl;
+	*/
 
 	for (int i = 0; i < verticesTraversalList.size(); i++)
 	{
@@ -315,7 +317,7 @@ void EarclippingPolygon::addTriangleFromEarclipping(Vertex v0, Vertex v1, Vertex
 	triangle.push_back(v1);
 	triangle.push_back(v2);
 
-	cout << "adding triangle " << v0.id << " " << v1.id << " " << v2.id << endl;
+//	cout << "adding triangle " << v0.id << " " << v1.id << " " << v2.id << endl;
 
 	triangles.push_back(triangle);
 }

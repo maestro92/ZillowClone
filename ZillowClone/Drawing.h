@@ -19,6 +19,8 @@ class Drawing
 	public:
 
 		static float EPSILON;
+		static float BEST_FIT_ERROR_THRESHOLD;
+
 		int counter;
 		struct IntersectionInfo
 		{
@@ -44,15 +46,6 @@ class Drawing
 		};
 
 
-		void processDrawingOnBtnMouseUp()
-		{
-
-		}
-
-		
-	//	void cleanupPolygons();		
-	//	void cleanupPolygon(vector<int> polygon);
-
 
 		static float isZero(float num)
 		{
@@ -64,6 +57,8 @@ class Drawing
 			return v0.x * v1.y - v1.x * v0.y;
 		}
 
+		void computeLeastSquaresForLineofBestFit();
+		void postProcessInputPoints();
 
 		void postProcess();
 
@@ -115,6 +110,8 @@ class Drawing
 		void createVerticesAndEdges();
 		void findAllMinimalCycleBasis();
 
+		bool isValidPointForLinearFit(int start, int end, float thresholdError);
+
 		void printPolygons();
 
 		int getNumVertices()
@@ -139,7 +136,7 @@ class Drawing
 
 		void reset()
 		{
-			inputPoints.clear();
+			inputPoints.clear();			
 			points.clear();
 			lines.clear();
 
@@ -172,6 +169,25 @@ class Drawing
 		}
 
 
+		void addInputPoint(glm::vec2 inputPoint)
+		{
+			inputPoints.push_back(inputPoint);
+		}
+
+		int getNumInputPoints()
+		{
+			return inputPoints.size();
+		}
+
+		glm::vec2 getFirstInputPoint()
+		{
+			return inputPoints[0];
+		}
+
+
+
+
+
 		int getNumPoints()
 		{
 			return points.size();
@@ -188,9 +204,13 @@ class Drawing
 
 		void loadInputRawPoints(const mObject& obj);
 		void loadRawPoints(const mObject& obj);
+
+
 		void loadVerticesData(const mObject& obj);
 		void loadTestData(char* file);
 		void saveTestData();
+
+
 
 		void verifyLoadTestDataFunction(vector<Vertex> oriVertices, vector<Edge> oriEdges,
 										vector<Vertex> newVertices, vector<Edge> newEdges);
@@ -202,8 +222,6 @@ class Drawing
 		vector<Vertex> getVerticesByIds(vector<int> vertexIds);
 
 	private:
-
-		bool alreadyInToBeRemoved(Edge edge);
 		void removeEdge(Edge edge);
 		bool alreadyInVector(vector<Edge> toBeRemoved, Edge edge);
 
@@ -217,8 +235,6 @@ class Drawing
 		glm::vec2 findPointInsideOfTriangle(vector<Vertex> triangle);
 
 
-		void triangulateClosedLoops();
-		void findPointsInClosedLoops();
 
 		glm::vec2 getLastPoint()
 		{
@@ -237,6 +253,8 @@ class Drawing
 
 	public:
 		std::function<void(glm::vec2) > onAddIntersection;
+		std::function<void(glm::vec2, glm::vec2)> createLineCallback;
+		std::function<void(glm::vec2)> createPointCallback;
 
 		// the list of vertices that forms a polygon/closed loop in your drawing
 		vector< vector<int>> polygons;

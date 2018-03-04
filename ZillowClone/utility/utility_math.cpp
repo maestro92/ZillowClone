@@ -135,3 +135,29 @@ bool utl::isPointInTriangle(glm::vec3 point, glm::vec3 v0, glm::vec3 v1, glm::ve
 	return true;
 }
 
+float utl::sqDistBetweenPointAndLineSetment(glm::vec2 l0, glm::vec2 l1, glm::vec2 p)
+{
+	glm::vec2 ab = l1 - l0;
+	glm::vec2 ac = p - l0;
+	glm::vec2 bc = p - l1;
+
+	float e = glm::dot(ac, ab);
+
+	// handles cases where c projects outside ab
+	if (e <= 0.0f)
+		return glm::dot(ac, ac);
+
+	float f = glm::dot(ab, ab);
+
+	if (e >= f)
+		return glm::dot(bc, bc);
+
+	return glm::dot(ac, ac) - e * e / f;
+
+}
+
+float utl::sqDistBetweenPointAndLineSetment(glm::vec3 l0, glm::vec3 l1, glm::vec3 p)
+{
+	return 0;
+}
+

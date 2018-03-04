@@ -2,6 +2,7 @@
 
 float Drawing::EPSILON = 1e-5;
 
+
 // find all the intersection caused by this new line(p0, p1)
 vector<Drawing::IntersectionInfo> Drawing::getIntersectionList(glm::vec2 p0, glm::vec2 p1)
 {
@@ -46,9 +47,111 @@ void Drawing::recordNewInputPoint(glm::vec2 point)
 	inputPoints.push_back(point);
 }
 
+void Drawing::postProcessInputPoints()
+{
+	points.clear();
+
+	// we don't process the last point
+	bool startNewLine = true;
+	int start = 0;
+	vector<glm::vec2> tempPoints;
+	for (int i = 0; i < inputPoints.size(); i++)
+	{
+		if (i==0 || i == inputPoints.size() - 1)
+		{
+			tempPoints.push_back(inputPoints[i]);
+		}
+		else
+		{
+			float distance = glm::distance2(inputPoints[start], inputPoints[i]);
+			float threshHold = distance * 0.001;
+
+			if (isValidPointForLinearFit(start, i, threshHold))
+			{
+				if (i == inputPoints.size() - 2)
+				{
+					tempPoints.push_back(inputPoints[i]);
+				}
+				else
+				{
+					continue;
+				}
+			}
+			else
+			{
+				tempPoints.push_back(inputPoints[i]);
+				start = i;
+			}
+		}
+	}
+
+	/*
+	glm::vec2 p0 = glm::vec2(0);
+	glm::vec2 p1 = glm::vec2(0);
+	for (int i = 0; i < getNumPoints(); i++)
+	{
+		if (i == 0)
+		{
+			// do nothing for now
+		}
+		else
+		{
+			p0 = points[i - 1];
+			p1 = points[i];
+
+			createLineCallback(p0, p1);
+		}
+
+		createPointCallback(points[i]);
+	}
+	*/
+
+	for (int i = 0; i < tempPoints.size(); i++)
+	{
+		processNewPoint(tempPoints[i]);
+	}
+
+
+	glm::vec2 p0 = glm::vec2(0);
+	glm::vec2 p1 = glm::vec2(0);
+	for (int i = 0; i < points.size(); i++)
+	{
+		if (i == 0)
+		{
+			// do nothing for now
+		}
+		else
+		{
+			p0 = points[i - 1];
+			p1 = points[i];
+
+			createLineCallback(p0, p1);
+		}
+
+		createPointCallback(points[i]);
+	}
+}
+
+
+bool Drawing::isValidPointForLinearFit(int start, int end, float thresholdError)
+{
+//	float error = 0;
+	for (int i = start+1; i <= end-1; i++)
+	{		
+		float error = utl::sqDistBetweenPointAndLineSetment(inputPoints[start], inputPoints[end], inputPoints[i]);
+
+		if (error > thresholdError)
+		{
+			return false;
+		}
+		
+	}
+	return true;
+}
+
 void Drawing::processNewPoint(glm::vec2 point)
 {
-	utl::debug(">>>>>>>>> Adding New Point", point);
+//	utl::debug(">>>>>>>>> Adding New Point", point);
 
 	if (saveLatest)
 	{
@@ -65,32 +168,10 @@ void Drawing::processNewPoint(glm::vec2 point)
 
 		Line tempLine;
 
-		/*
-		cout << "before" << endl;
-		for (int i = 0; i < points.size(); i++)
-		{
-			cout << i << "		" << points[i].x << " " << points[i].y << endl;
-		}
-		*/
-		/*
-		if (newPointCounter == 4 || newPointCounter == 7)
-		{
-			cout << "	Intersections.size " << intersections.size() << endl;
-			printPointsAndLines();
-		}
-		*/
 
 		for (int i = 0; i < intersections.size(); i++)
 		{
 			IntersectionInfo info = intersections[i];
-
-			/*
-			if (newPointCounter == 7)
-			{
-				cout << "info point" << endl;
-				cout << info.point0.x << " " << info.point0.y << ", " << info.point1.x << " " << info.point1.y << endl;
-			}
-			*/
 
 			processIntersection(info);
 
@@ -115,14 +196,6 @@ void Drawing::processNewPoint(glm::vec2 point)
 		lines.push_back(tempLine);
 
 		points.push_back(point);
-
-		/*
-		if (newPointCounter == 4 || newPointCounter == 7)
-		{
-			cout << "	Intersections.size " << intersections.size() << endl;
-			printPointsAndLines();
-		}
-		*/
 	}
 	else
 	{
@@ -140,7 +213,7 @@ void Drawing::printPointsAndLines()
 {
 	
 	cout << "	*****" << endl;
-	cout << "	Printing points" << endl;
+	cout << "	Printing points " << points.size() << endl;
 	for (int i = 0; i < points.size(); i++)
 	{
 		cout << "		point is " << points[i].x << " " << points[i].y << endl;
@@ -187,7 +260,7 @@ void Drawing::calculateVerticesAngle()
 
 void Drawing::createVerticesAndEdges()
 {
-	/*
+/*	
 	cout << "############ In Post Process " << points.size() << " " << endl;
 
 	for (int i = 0; i < points.size(); i++)
@@ -296,7 +369,7 @@ void Drawing::findAllMinimalCycleBasis()
 		Vertex vPrev;
 		hasValidStartVertex = false;
 		iterations = 0;
-		cout << "		Starting new cycle with " << startVertex.id << endl;
+//		cout << "		Starting new cycle with " << startVertex.id << endl;
 /*
 		cout << "		Starting new cycle with " << startVertex.id << endl;
 
@@ -686,7 +759,7 @@ void Drawing::findAllMinimalCycleBasis()
 
 void Drawing::processNestedLoops(vector<vector<int>> nestedLoops)
 {	
-	cout << ">>>>>>> nestedSubgraphPostprocess " << endl;
+//	cout << ">>>>>>> nestedSubgraphPostprocess " << endl;
 	for (int i = 0; i < nestedLoops.size(); i++)
 	{
 		processNestedLoop(nestedLoops[i]);
@@ -726,12 +799,14 @@ void Drawing::processNestedLoop(vector<int> nestedLoop)
 	// replicate root for these new neighbor dudes
 	int newId = getNewVertexId();
 
+	/*
 	cout << "creating newId " << newId << ", cloning " << root << endl;
 	for (int i = 0; i < nestedLoop.size(); i++)
 	{
 		cout << nestedLoop[i] << " ";
 	}
 	cout << endl;
+	*/
 
 	Vertex newVertex = Vertex(vertices[root]);
 	newVertex.id = newId;
@@ -739,7 +814,7 @@ void Drawing::processNestedLoop(vector<int> nestedLoop)
 	vertices.push_back(newVertex);
 	for (int i = 0; i < neighborList.size(); i++)
 	{
-		cout << "	adding Neighbor " << neighborList[i] << endl;
+	//	cout << "	adding Neighbor " << neighborList[i] << endl;
 		vertices[root].removeNeighbor(neighborList[i]);
 		vertices[newId].addNeighbor(neighborList[i]);
 		vertices[neighborList[i]].removeNeighbor(root);
@@ -790,7 +865,7 @@ vector<Vertex> Drawing::getVerticesByIds(vector<int> vertexIds)
 void Drawing::doEarClipping()
 {
 	earclippingPolygons.clear();
-	cout << "doEarClipping " << endl;
+//	cout << "doEarClipping " << endl;
 	//cout << "Printing VerticesGroups" << endl;
 	for (int i = 0; i < polygons.size(); i++)
 	{
@@ -1397,7 +1472,7 @@ void Drawing::postProcess()
 {
 	createVerticesAndEdges();
 //	printVerticesAndEdges();
-	cout << " ############### postProcess" << endl;
+//	cout << " ############### postProcess" << endl;
 
 	if (saveLatest)
 	{
@@ -1458,7 +1533,7 @@ int Drawing::getPointIndex(glm::vec2 point0, glm::vec2 point1)
 
 void Drawing::determinePolygonsInsideOutside()
 {
-	cout << "determinePolygonsInsideOutside " << polygons.size() << endl;
+//	cout << "determinePolygonsInsideOutside " << polygons.size() << endl;
 	polygonInsideFlags.clear();
 	for (int i = 0; i < polygons.size(); i++)
 	{

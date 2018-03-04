@@ -42,5 +42,9 @@ namespace utl
 	bool isPointInTriangle(glm::vec2 point, glm::vec2 v0, glm::vec2 v1, glm::vec2 v2);
 	bool isPointInTriangle(glm::vec3 point, glm::vec3 v0, glm::vec3 v1, glm::vec3 v2);
 
+
+	float sqDistBetweenPointAndLineSetment(glm::vec2 l0, glm::vec2 l1, glm::vec2 p);
+	float sqDistBetweenPointAndLineSetment(glm::vec3 l0, glm::vec3 l1, glm::vec3 p);
+
 }
 #endif
